@@ -65,14 +65,14 @@ export default function CustomEventView({ onBackToSplash, currentUser }: CustomE
   const [debugUserExpanded, setDebugUserExpanded] = useState<string | null>(null);
 
   const handleAnalyzeEvent = async () => {
-    if (!eventDescription.trim()) return;
+    if (!eventDescription.trim() || isAnalyzing) return;
 
     setIsAnalyzing(true);
     setError(null);
     setAnalysis(null);
 
     try {
-      const result = await analyzeCustomEventForAllUsers(eventDescription);
+      const result = await analyzeCustomEventForAllUsers(eventDescription.trim());
       
       setAnalysis({
         title: result.eventAnalysis.title,
@@ -90,9 +90,11 @@ export default function CustomEventView({ onBackToSplash, currentUser }: CustomE
   };
 
   const resetForm = () => {
+    // Clear all state properly for mobile
     setEventDescription('');
     setAnalysis(null);
     setError(null);
+    setIsAnalyzing(false); // Ensure analyzing state is reset
   };
 
   const getScoreColor = (score: number) => {
@@ -146,11 +148,11 @@ export default function CustomEventView({ onBackToSplash, currentUser }: CustomE
               </p>
             </div>
 
-            <div className="flex gap-3">
+            <div className="flex flex-col sm:flex-row gap-3">
               <button
                 onClick={handleAnalyzeEvent}
                 disabled={!eventDescription.trim() || isAnalyzing}
-                className={`playful-button-primary flex-1 ${
+                className={`playful-button-primary flex-1 min-h-[48px] ${
                   isAnalyzing ? 'opacity-50 cursor-not-allowed' : ''
                 }`}
               >
@@ -160,7 +162,7 @@ export default function CustomEventView({ onBackToSplash, currentUser }: CustomE
               {(analysis || error) && (
                 <button
                   onClick={resetForm}
-                  className="playful-button-secondary"
+                  className="playful-button-secondary min-h-[48px] sm:w-auto w-full"
                   disabled={isAnalyzing}
                 >
                   🔄 try another event

@@ -183,11 +183,20 @@ export function calculateAlgorithmStrength(
     confidence = 'medium';
   }
   
+  // Calculate decaying threshold - Q30: 0.85 → Q70: 0.75 (then stops)
+  // This prevents users from getting stuck in endless quiz loops
+  let adjustedThreshold = TARGET_ALGORITHM_STRENGTH; // 0.85
+  if (currentMatchup > 30) {
+    // Linear decay from Q30 to Q70: 0.85 → 0.75
+    const decayProgress = Math.min(1, (currentMatchup - 30) / 40); // 40 matchups = Q30 to Q70
+    adjustedThreshold = 0.85 - (decayProgress * 0.10); // 0.85 - 0.10 = 0.75 at Q70
+  }
+  
   // Algorithm is ready when:
-  // 1. Score meets target AND
-  // 2. We have at least 10 predictions AND
+  // 1. Score meets adjusted threshold AND
+  // 2. We have at least 10 predictions AND  
   // 3. Sample ratio is good (at least 70% of target history size)
-  const isReady = score >= TARGET_ALGORITHM_STRENGTH && 
+  const isReady = score >= adjustedThreshold && 
                   recentPredictions.length >= minPredictionsForReady && 
                   sampleRatio >= 0.7;
   

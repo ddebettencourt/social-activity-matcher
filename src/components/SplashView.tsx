@@ -25,11 +25,11 @@ export default function SplashView({ onStartQuiz, onLogin, onCustomEvent, isLoad
       <div className="max-w-2xl w-full text-center">
         {/* Main Logo/Title */}
         <div className="mb-8 -mt-8">
-          <div className="text-8xl mb-6">🧬</div>
-          <h1 className="text-5xl md:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 via-blue-600 to-emerald-600 mb-8 leading-normal py-4">
+          <div className="text-6xl md:text-8xl mb-4 md:mb-6">🧬</div>
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 via-blue-600 to-emerald-600 mb-6 md:mb-8 leading-tight py-2 md:py-4">
             find your social genes
           </h1>
-          <p className="text-base text-gray-600 max-w-xl mx-auto">
+          <p className="text-sm sm:text-base text-gray-600 max-w-xl mx-auto px-4">
             take our fun quiz to uncover your social preferences and get personalized activity recommendations
           </p>
         </div>
@@ -38,25 +38,25 @@ export default function SplashView({ onStartQuiz, onLogin, onCustomEvent, isLoad
         <div className="space-y-4 mb-8">
           <button
             onClick={onStartQuiz}
-            className="playful-button-primary text-xl px-8 py-4 w-full md:w-auto min-w-64"
+            className="playful-button-primary text-lg sm:text-xl px-6 sm:px-8 py-3 sm:py-4 w-full md:w-auto min-w-64 min-h-[48px]"
             disabled={isLoading}
           >
             🚀 start the quiz!
           </button>
           
-          <div className="text-gray-500">or</div>
+          <div className="text-gray-500 text-sm sm:text-base">or</div>
           
-          <div className="flex flex-col md:flex-row gap-3 justify-center">
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <button
               onClick={() => setShowLoginModal(true)}
-              className="playful-button-secondary text-lg px-6 py-3 w-full md:w-auto min-w-48"
+              className="playful-button-secondary text-base sm:text-lg px-4 sm:px-6 py-3 w-full sm:w-auto min-w-48 min-h-[48px]"
               disabled={isLoading}
             >
               {isLoading ? '⏳ loading...' : '👤 log in to profile'}
             </button>
             <button
               onClick={onCustomEvent}
-              className="playful-button-secondary text-lg px-6 py-3 w-full md:w-auto min-w-48"
+              className="playful-button-secondary text-base sm:text-lg px-4 sm:px-6 py-3 w-full sm:w-auto min-w-48 min-h-[48px]"
               disabled={isLoading}
             >
               🔮 analyze custom event
@@ -65,17 +65,17 @@ export default function SplashView({ onStartQuiz, onLogin, onCustomEvent, isLoad
         </div>
 
         {/* Fun Facts */}
-        <div className="grid md:grid-cols-3 gap-4 text-center text-sm text-gray-600">
-          <div className="playful-card p-4">
-            <div className="text-2xl mb-2">⚡</div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 text-center text-xs sm:text-sm text-gray-600">
+          <div className="playful-card p-3 sm:p-4">
+            <div className="text-xl sm:text-2xl mb-1 sm:mb-2">⚡</div>
             <div>takes 5-10 minutes</div>
           </div>
-          <div className="playful-card p-4">
-            <div className="text-2xl mb-2">🎯</div>
+          <div className="playful-card p-3 sm:p-4">
+            <div className="text-xl sm:text-2xl mb-1 sm:mb-2">🎯</div>
             <div>smart algorithm learns you</div>
           </div>
-          <div className="playful-card p-4">
-            <div className="text-2xl mb-2">🎪</div>
+          <div className="playful-card p-3 sm:p-4">
+            <div className="text-xl sm:text-2xl mb-1 sm:mb-2">🎪</div>
             <div>170+ activity options</div>
           </div>
         </div>
