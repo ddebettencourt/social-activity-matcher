@@ -42,7 +42,7 @@ export default function StartView({ onStartQuiz, currentUser, onBackToSplash }: 
           >
             ← back to home
           </button>
-          <p className="text-xs text-brown-500">&copy; 2025 Fun Finder ELO Edition</p>
+          <p className="text-xs text-brown-500">&copy; 2025</p>
         </div>
       </footer>
     </div>

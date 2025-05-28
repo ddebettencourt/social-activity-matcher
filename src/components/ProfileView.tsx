@@ -262,7 +262,7 @@ export default function ProfileView({
       </main>
 
       <p className="text-xs text-brown-500 mt-6 text-center">
-        &copy; 2025 Fun Finder ELO Edition
+        &copy; 2025
       </p>
     </div>
   );

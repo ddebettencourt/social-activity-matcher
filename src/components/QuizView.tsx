@@ -507,7 +507,7 @@ export default function QuizView({ quizState, setQuizState, onFinishQuiz, curren
       </div>
       
       <footer className="mt-4 md:mt-6 text-center">
-        <p className="text-xs text-brown-500">&copy; 2025 Fun Finder ELO Edition</p>
+        <p className="text-xs text-brown-500">&copy; 2025</p>
       </footer>
     </div>
   );
