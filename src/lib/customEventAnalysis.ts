@@ -843,7 +843,7 @@ export function predictUserEnjoymentHybrid(
         zScore: Number(zScore.toFixed(2)),
         activityCount: activitiesWithTag.length,
         importanceWeight: Number(importanceWeight.toFixed(2)),
-        adjustment: Number(tagEffect.toFixed(2)),
+        adjustment: Number(tagEffect.toFixed(1)), // Raw ELO effect before pooling
         topActivities: activitiesWithTag
           .sort((a, b) => b.elo - a.elo)
           .slice(0, 3)
