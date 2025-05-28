@@ -826,10 +826,10 @@ export function predictUserEnjoymentHybrid(
       const pooledFactor = Math.sqrt(n / (1 + 0.3 * (n - 1)));
       const zScore = rawStandardDeviations * pooledFactor;
       
-      // Calculate weighted tag effect (not z-score yet)
+      // Calculate weighted z-score contribution
       const importanceWeight = importance / 5; // Normalize importance to 0-1
-      const tagEffect = (tagAvgElo - overallAvgElo) * importanceWeight;
-      weightedTagEffectSum += tagEffect;
+      const tagEffect = (tagAvgElo - overallAvgElo); // Raw ELO difference for display
+      weightedTagEffectSum += zScore * importanceWeight; // Sum weighted z-scores
       totalImportanceWeight += importanceWeight;
       totalActivitiesAcrossTags += activitiesWithTag.length;
       
@@ -850,7 +850,7 @@ export function predictUserEnjoymentHybrid(
           .map(a => a.title)
       });
       
-      calculationSteps.push(`Tag "${tag}" (importance=${importance}): ${activitiesWithTag.length} activities, avg=${tagAvgElo.toFixed(1)}, effect=${tagEffect.toFixed(1)}`);
+      calculationSteps.push(`Tag "${tag}" (importance=${importance}): ${activitiesWithTag.length} activities, avg=${tagAvgElo.toFixed(1)}, z=${zScore.toFixed(2)}, weighted_z=${(zScore * importanceWeight).toFixed(2)}`);
     } else {
       calculationSteps.push(`Tag "${tag}" (importance=${importance}): Only ${activitiesWithTag.length} activities (insufficient for statistics)`);
     }
@@ -863,12 +863,12 @@ export function predictUserEnjoymentHybrid(
   let overallTagZScore = 0;
   
   if (totalImportanceWeight > 0 && totalActivitiesAcrossTags > 0) {
-    // Convert weighted tag effect sum to standard deviations
-    const standardizedTagEffect = overallStdDev > 0 ? weightedTagEffectSum / overallStdDev : 0;
+    // Calculate weighted average of individual tag z-scores
+    const weightedAverageZScore = weightedTagEffectSum / totalImportanceWeight;
     
-    // Apply pooled z-score formula with 0.1 tag correlation
+    // Apply pooled z-score formula with 0.1 tag correlation and stdev=1 (since we're using z-scores)
     const pooledTagFactor = Math.sqrt(totalActivitiesAcrossTags / (1 + 0.1 * (totalActivitiesAcrossTags - 1)));
-    overallTagZScore = standardizedTagEffect * pooledTagFactor;
+    overallTagZScore = weightedAverageZScore * pooledTagFactor;
     
     // Convert z-score to 0-10 scale
     // Use sigmoid-like function to map z-scores to reasonable range
@@ -877,8 +877,8 @@ export function predictUserEnjoymentHybrid(
     tagScore = 5.5 + (normalizedZScore * 4.5); // Maps to 1-10 range, centered at 5.5
     tagScore = Math.max(0.5, Math.min(10.0, tagScore));
     
-    calculationSteps.push(`Weighted tag effect sum: ${weightedTagEffectSum.toFixed(1)} ELO points`);
-    calculationSteps.push(`Standardized effect: ${standardizedTagEffect.toFixed(3)} standard deviations`);
+    calculationSteps.push(`Weighted z-score sum: ${weightedTagEffectSum.toFixed(3)}`);
+    calculationSteps.push(`Weighted average z-score: ${weightedAverageZScore.toFixed(3)}`);
     calculationSteps.push(`Pooled z-score: ${overallTagZScore.toFixed(3)} (using correlation=0.1, n=${totalActivitiesAcrossTags})`);
     calculationSteps.push(`Tag-based score: ${tagScore.toFixed(1)}/10`);
   }
