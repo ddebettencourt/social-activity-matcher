@@ -770,7 +770,7 @@ export function predictUserEnjoymentHybrid(
   calculationSteps.push(`Claude base score: Rank ${rank + 1}/${sortedElos.length} (${(percentile * 100).toFixed(1)}%) = ${claudeBaseScore.toFixed(1)}/10`);
   
   // Step 2: Calculate tag-based ELO statistics with importance weighting
-  calculationSteps.push(`STEP 2: Analyze tag-based ELO patterns with importance weighting`);
+  calculationSteps.push(`STEP 2: Analyze tag-based ELO patterns using pooled z-scores`);
   
   // Handle both old string format and new object format
   const tagObjects = Array.isArray(customEventTags) && customEventTags.length > 0 && typeof customEventTags[0] === 'object'
@@ -814,10 +814,15 @@ export function predictUserEnjoymentHybrid(
       const tagVariance = tagElos.reduce((sum, elo) => sum + Math.pow(elo - tagAvgElo, 2), 0) / tagElos.length;
       const tagStdDev = Math.sqrt(tagVariance);
       
-      // Calculate proper group z-score using standard error of the mean
-      // This measures how statistically significant the tag's deviation from overall average is
-      const standardError = tagStdDev / Math.sqrt(activitiesWithTag.length);
-      const zScore = standardError > 0 ? (tagAvgElo - overallAvgElo) / standardError : 0;
+      // Calculate proper pooled z-score for group significance
+      // First: how many standard deviations away from population mean is the group average
+      const rawStandardDeviations = overallStdDev > 0 ? (tagAvgElo - overallAvgElo) / overallStdDev : 0;
+      
+      // Then: apply pooled z-score formula: y*sqrt(n/(1+0.5*(n-1)))
+      // where y = raw std devs, n = sample size, 0.5 = expected correlation
+      const n = activitiesWithTag.length;
+      const pooledFactor = Math.sqrt(n / (1 + 0.5 * (n - 1)));
+      const zScore = rawStandardDeviations * pooledFactor;
       
       // Weight this z-score by the tag's importance
       const importanceWeight = importance / 5; // Normalize importance to 0-1
@@ -830,14 +835,14 @@ export function predictUserEnjoymentHybrid(
         userAvgElo: Number(tagAvgElo.toFixed(1)),
         overallAvgElo: Number(overallAvgElo.toFixed(1)),
         standardDeviation: Number(tagStdDev.toFixed(1)),
-        standardError: Number((tagStdDev / Math.sqrt(activitiesWithTag.length)).toFixed(2)),
+        standardError: Number(rawStandardDeviations.toFixed(2)), // Raw std devs from population mean
         zScore: Number(zScore.toFixed(2)),
         activityCount: activitiesWithTag.length,
         importanceWeight: Number(importanceWeight.toFixed(2)),
         adjustment: Number((zScore * importanceWeight).toFixed(2))
       });
       
-      calculationSteps.push(`Tag "${tag}" (importance=${importance}): ${activitiesWithTag.length} activities, avg=${tagAvgElo.toFixed(1)}, SE=${(tagStdDev / Math.sqrt(activitiesWithTag.length)).toFixed(2)}, z=${zScore.toFixed(2)}`);
+      calculationSteps.push(`Tag "${tag}" (importance=${importance}): ${activitiesWithTag.length} activities, avg=${tagAvgElo.toFixed(1)}, raw_z=${rawStandardDeviations.toFixed(2)}, pooled_z=${zScore.toFixed(2)}`);
     } else {
       calculationSteps.push(`Tag "${tag}" (importance=${importance}): Only ${activitiesWithTag.length} activities (insufficient for statistics)`);
     }
@@ -845,7 +850,7 @@ export function predictUserEnjoymentHybrid(
   
   // Calculate overall weighted z-score
   const overallWeightedZScore = totalImportanceWeight > 0 ? weightedZScoreSum / totalImportanceWeight : 0;
-  calculationSteps.push(`Overall weighted z-score: ${overallWeightedZScore.toFixed(3)}`);
+  calculationSteps.push(`Overall weighted pooled z-score: ${overallWeightedZScore.toFixed(3)} (using correlation=0.5)`);
   
   // Step 3: Apply tag-based adjustment using proper statistical significance
   calculationSteps.push(`STEP 3: Apply tag-based adjustment using statistical significance`);
@@ -869,7 +874,7 @@ export function predictUserEnjoymentHybrid(
   const finalScore = Math.max(0.5, Math.min(10.0, claudeBaseScore + finalAdjustment));
   
   calculationSteps.push(`Base score: ${claudeBaseScore.toFixed(1)}`);
-  calculationSteps.push(`Weighted z-score: ${overallWeightedZScore.toFixed(3)} (using standard errors for statistical significance)`);
+  calculationSteps.push(`Weighted pooled z-score: ${overallWeightedZScore.toFixed(3)} (measures group significance vs random sample)`);
   calculationSteps.push(`Raw adjustment: tanh(${overallWeightedZScore.toFixed(3)} ÷ 3) × ${maxAdjustment} = ${rawAdjustment.toFixed(2)}`);
   calculationSteps.push(`Extremeness factor: ${extremenessFactor.toFixed(2)} (prevents impossible scores)`);
   calculationSteps.push(`Final adjustment: ${rawAdjustment.toFixed(2)} × ${extremenessFactor.toFixed(2)} = ${finalAdjustment.toFixed(2)}`);
