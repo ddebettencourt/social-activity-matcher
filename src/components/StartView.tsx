@@ -23,7 +23,7 @@ export default function StartView({ onStartQuiz, currentUser, onBackToSplash }: 
       
       <main className="mb-8">
         <p className="text-brown-600 mb-6 text-sm md:text-base">
-          pick your faves and we&apos;ll figure out what makes an event super cool for YOU. (now with ELO ratings & your own data!)
+          pick your faves and we&apos;ll figure out what makes an event super cool for YOU.
         </p>
       </main>
       

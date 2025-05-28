@@ -796,9 +796,11 @@ export function predictUserEnjoymentHybrid(
     activityCount: number;
     importanceWeight: number;
     adjustment: number;
+    topActivities: string[];
   }[] = [];
-  let weightedZScoreSum = 0;
+  let weightedTagEffectSum = 0;
   let totalImportanceWeight = 0;
+  let totalActivitiesAcrossTags = 0;
   
   tagObjects.forEach(tagObj => {
     const tag = tagObj.name;
@@ -818,16 +820,18 @@ export function predictUserEnjoymentHybrid(
       // First: how many standard deviations away from population mean is the group average
       const rawStandardDeviations = overallStdDev > 0 ? (tagAvgElo - overallAvgElo) / overallStdDev : 0;
       
-      // Then: apply pooled z-score formula: y*sqrt(n/(1+0.5*(n-1)))
-      // where y = raw std devs, n = sample size, 0.5 = expected correlation
+      // Then: apply pooled z-score formula: y*sqrt(n/(1+0.3*(n-1)))
+      // where y = raw std devs, n = sample size, 0.3 = expected correlation
       const n = activitiesWithTag.length;
-      const pooledFactor = Math.sqrt(n / (1 + 0.5 * (n - 1)));
+      const pooledFactor = Math.sqrt(n / (1 + 0.3 * (n - 1)));
       const zScore = rawStandardDeviations * pooledFactor;
       
-      // Weight this z-score by the tag's importance
+      // Calculate weighted tag effect (not z-score yet)
       const importanceWeight = importance / 5; // Normalize importance to 0-1
-      weightedZScoreSum += zScore * importanceWeight;
+      const tagEffect = (tagAvgElo - overallAvgElo) * importanceWeight;
+      weightedTagEffectSum += tagEffect;
       totalImportanceWeight += importanceWeight;
+      totalActivitiesAcrossTags += activitiesWithTag.length;
       
       tagAnalysis.push({
         tag,
@@ -839,61 +843,68 @@ export function predictUserEnjoymentHybrid(
         zScore: Number(zScore.toFixed(2)),
         activityCount: activitiesWithTag.length,
         importanceWeight: Number(importanceWeight.toFixed(2)),
-        adjustment: Number((zScore * importanceWeight).toFixed(2))
+        adjustment: Number(tagEffect.toFixed(2)),
+        topActivities: activitiesWithTag
+          .sort((a, b) => b.elo - a.elo)
+          .slice(0, 3)
+          .map(a => a.title)
       });
       
-      calculationSteps.push(`Tag "${tag}" (importance=${importance}): ${activitiesWithTag.length} activities, avg=${tagAvgElo.toFixed(1)}, raw_z=${rawStandardDeviations.toFixed(2)}, pooled_z=${zScore.toFixed(2)}`);
+      calculationSteps.push(`Tag "${tag}" (importance=${importance}): ${activitiesWithTag.length} activities, avg=${tagAvgElo.toFixed(1)}, effect=${tagEffect.toFixed(1)}`);
     } else {
       calculationSteps.push(`Tag "${tag}" (importance=${importance}): Only ${activitiesWithTag.length} activities (insufficient for statistics)`);
     }
   });
   
-  // Calculate overall weighted z-score
-  const overallWeightedZScore = totalImportanceWeight > 0 ? weightedZScoreSum / totalImportanceWeight : 0;
-  calculationSteps.push(`Overall weighted pooled z-score: ${overallWeightedZScore.toFixed(3)} (using correlation=0.5)`);
+  // Step 3: Calculate pooled z-score of total weighted tag effect using 0.1 correlation
+  calculationSteps.push(`STEP 3: Calculate pooled z-score of combined tag effects`);
   
-  // Step 3: Apply tag-based adjustment using proper statistical significance
-  calculationSteps.push(`STEP 3: Apply tag-based adjustment using statistical significance`);
+  let tagScore = 5.5; // Default neutral score
+  let overallTagZScore = 0;
   
-  // Use statistical significance of weighted z-score for adjustment
-  // Z-scores > 2 are statistically significant (95% confidence)
-  // Z-scores > 3 are highly significant (99.7% confidence)
-  // Maximum adjustment is +/- 3.0 points for highly significant deviations
-  const maxAdjustment = 3.0;
+  if (totalImportanceWeight > 0 && totalActivitiesAcrossTags > 0) {
+    // Convert weighted tag effect sum to standard deviations
+    const standardizedTagEffect = overallStdDev > 0 ? weightedTagEffectSum / overallStdDev : 0;
+    
+    // Apply pooled z-score formula with 0.1 tag correlation
+    const pooledTagFactor = Math.sqrt(totalActivitiesAcrossTags / (1 + 0.1 * (totalActivitiesAcrossTags - 1)));
+    overallTagZScore = standardizedTagEffect * pooledTagFactor;
+    
+    // Convert z-score to 0-10 scale
+    // Use sigmoid-like function to map z-scores to reasonable range
+    // Z-score of ±3 should map to roughly 1-9 range
+    const normalizedZScore = Math.tanh(overallTagZScore / 3.0); // Maps ±∞ to ±1
+    tagScore = 5.5 + (normalizedZScore * 4.5); // Maps to 1-10 range, centered at 5.5
+    tagScore = Math.max(0.5, Math.min(10.0, tagScore));
+    
+    calculationSteps.push(`Weighted tag effect sum: ${weightedTagEffectSum.toFixed(1)} ELO points`);
+    calculationSteps.push(`Standardized effect: ${standardizedTagEffect.toFixed(3)} standard deviations`);
+    calculationSteps.push(`Pooled z-score: ${overallTagZScore.toFixed(3)} (using correlation=0.1, n=${totalActivitiesAcrossTags})`);
+    calculationSteps.push(`Tag-based score: ${tagScore.toFixed(1)}/10`);
+  }
   
-  // Convert z-score to adjustment using sigmoid-like function
-  // This provides strong adjustments for statistically significant deviations
-  // but prevents completely extreme scores
-  const rawAdjustment = Math.tanh(overallWeightedZScore / 3.0) * maxAdjustment;
+  // Step 4: Average Claude score with tag score
+  calculationSteps.push(`STEP 4: Average Claude and tag scores`);
+  const finalScore = (claudeBaseScore + tagScore) / 2;
   
-  // Reduce adjustment slightly if Claude score is already extreme to prevent impossible scores
-  const distanceFromMiddle = Math.abs(claudeBaseScore - 5.5); // 5.5 is middle of 0.5-10 scale
-  const extremenessFactor = Math.max(0.6, 1 - (distanceFromMiddle / 4.5) * 0.4); // Reduce by up to 40% near extremes
-  const finalAdjustment = rawAdjustment * extremenessFactor;
-  
-  const finalScore = Math.max(0.5, Math.min(10.0, claudeBaseScore + finalAdjustment));
-  
-  calculationSteps.push(`Base score: ${claudeBaseScore.toFixed(1)}`);
-  calculationSteps.push(`Weighted pooled z-score: ${overallWeightedZScore.toFixed(3)} (measures group significance vs random sample)`);
-  calculationSteps.push(`Raw adjustment: tanh(${overallWeightedZScore.toFixed(3)} ÷ 3) × ${maxAdjustment} = ${rawAdjustment.toFixed(2)}`);
-  calculationSteps.push(`Extremeness factor: ${extremenessFactor.toFixed(2)} (prevents impossible scores)`);
-  calculationSteps.push(`Final adjustment: ${rawAdjustment.toFixed(2)} × ${extremenessFactor.toFixed(2)} = ${finalAdjustment.toFixed(2)}`);
-  calculationSteps.push(`Final hybrid score: ${claudeBaseScore.toFixed(1)} + ${finalAdjustment.toFixed(2)} = ${finalScore.toFixed(1)}/10`);
+  calculationSteps.push(`Claude base score: ${claudeBaseScore.toFixed(1)}/10`);
+  calculationSteps.push(`Tag-based score: ${tagScore.toFixed(1)}/10`);
+  calculationSteps.push(`Final hybrid score: (${claudeBaseScore.toFixed(1)} + ${tagScore.toFixed(1)}) ÷ 2 = ${finalScore.toFixed(1)}/10`);
   
   // Add interpretation of statistical significance
-  if (Math.abs(overallWeightedZScore) > 3) {
-    calculationSteps.push(`→ Highly significant preference pattern (99.7% confidence)`);
-  } else if (Math.abs(overallWeightedZScore) > 2) {
-    calculationSteps.push(`→ Statistically significant preference pattern (95% confidence)`);
-  } else if (Math.abs(overallWeightedZScore) > 1) {
-    calculationSteps.push(`→ Moderate preference pattern detected`);
+  if (Math.abs(overallTagZScore) > 3) {
+    calculationSteps.push(`→ Highly significant tag preference pattern (99.7% confidence)`);
+  } else if (Math.abs(overallTagZScore) > 2) {
+    calculationSteps.push(`→ Statistically significant tag preference pattern (95% confidence)`);
+  } else if (Math.abs(overallTagZScore) > 1) {
+    calculationSteps.push(`→ Moderate tag preference pattern detected`);
   } else {
-    calculationSteps.push(`→ Weak or no clear preference pattern`);
+    calculationSteps.push(`→ Weak or no clear tag preference pattern`);
   }
   
   let explanation = `Hybrid prediction: ${finalScore.toFixed(1)}/10`;
-  if (Math.abs(finalAdjustment) > 0.1) {
-    explanation += ` (Claude base: ${claudeBaseScore.toFixed(1)}, tag adjustment: ${finalAdjustment > 0 ? '+' : ''}${finalAdjustment.toFixed(1)})`;
+  if (Math.abs(tagScore - 5.5) > 0.1) {
+    explanation += ` (Claude: ${claudeBaseScore.toFixed(1)}, Tags: ${tagScore.toFixed(1)})`;
   }
   
   // Generate user-friendly insights
@@ -954,15 +965,8 @@ export function predictUserEnjoymentHybrid(
     hybridBreakdown: {
       calculationSteps,
       claudeBaseScore: Number(claudeBaseScore.toFixed(1)),
-      tagAnalysis: tagAnalysis.map(analysis => ({
-        ...analysis,
-        topActivities: userActivities
-          .filter(activity => activity.tags && activity.tags.some(tag => normalizeTag(tag) === normalizeTag(analysis.tag)))
-          .sort((a, b) => b.elo - a.elo)
-          .slice(0, 3)
-          .map(a => a.title)
-      })),
-      finalAdjustment: Number(finalAdjustment.toFixed(2)),
+      tagAnalysis,
+      finalAdjustment: Number((tagScore - 5.5).toFixed(2)), // How much tags deviated from neutral
       similarActivitiesUsed: activitiesWithElo.map(({ title, similarity, elo, explanation }) => ({
         title,
         similarity,
