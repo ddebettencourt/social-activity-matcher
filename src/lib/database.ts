@@ -379,3 +379,77 @@ export async function getQualifiedUsersForEventAnalysis(minMatchups: number = 10
     return [];
   }
 }
+
+// Get all users with their complete profile data for analysis
+export async function getAllUsersWithProfiles(): Promise<{
+  username: string;
+  createdAt: string;
+  lastActive: string;
+  activityData: Activity[];
+  totalMatchups: number;
+  hasQuizData: boolean;
+}[]> {
+  try {
+    console.log('Getting all users with complete profile data');
+    
+    // Get all users
+    const { data: users, error: usersError } = await supabase
+      .from('users')
+      .select('id, username, created_at, last_active')
+      .order('created_at', { ascending: false });
+
+    if (usersError || !users) {
+      console.log('No users found or error:', usersError);
+      return [];
+    }
+    
+    console.log(`Found ${users.length} total users`);
+
+    const usersWithProfiles: {
+      username: string;
+      createdAt: string;
+      lastActive: string;
+      activityData: Activity[];
+      totalMatchups: number;
+      hasQuizData: boolean;
+    }[] = [];
+
+    // Get quiz data for each user
+    for (const user of users) {
+      const { data: quizData, error: quizError } = await supabase
+        .from('quiz_results')
+        .select('activity_data, total_matchups')
+        .eq('user_id', user.id)
+        .order('completed_at', { ascending: false })
+        .single();
+
+      if (quizError || !quizData) {
+        // User has no quiz data
+        usersWithProfiles.push({
+          username: user.username,
+          createdAt: user.created_at,
+          lastActive: user.last_active,
+          activityData: [],
+          totalMatchups: 0,
+          hasQuizData: false
+        });
+      } else {
+        // User has quiz data
+        usersWithProfiles.push({
+          username: user.username,
+          createdAt: user.created_at,
+          lastActive: user.last_active,
+          activityData: quizData.activity_data,
+          totalMatchups: quizData.total_matchups,
+          hasQuizData: true
+        });
+      }
+    }
+
+    console.log(`Retrieved profiles for ${usersWithProfiles.length} users`);
+    return usersWithProfiles;
+  } catch (error) {
+    console.error('Error getting all users with profiles:', error);
+    return [];
+  }
+}

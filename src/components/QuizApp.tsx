@@ -11,8 +11,9 @@ import QuizView from './QuizView';
 import ResultsView from './ResultsView';
 import ProfileView from './ProfileView';
 import CustomEventView from './CustomEventView';
+import ProfilesPage from './ProfilesPage';
 
-type ViewType = 'splash' | 'start' | 'quiz' | 'results' | 'profile' | 'customEvent';
+type ViewType = 'splash' | 'start' | 'quiz' | 'results' | 'profile' | 'customEvent' | 'profiles';
 
 export default function QuizApp() {
   const [currentView, setCurrentView] = useState<ViewType>('splash');
@@ -334,6 +335,10 @@ export default function QuizApp() {
   const goToCustomEvent = () => {
     setCurrentView('customEvent');
   };
+  
+  const goToProfiles = () => {
+    setCurrentView('profiles');
+  };
 
   const continueQuiz = () => {
     console.log("continueQuiz: Starting additional matchups for logged-in user");
@@ -402,6 +407,7 @@ export default function QuizApp() {
           onStartQuiz={startQuizFromSplash}
           onLogin={loginUser}
           onCustomEvent={goToCustomEvent}
+          onProfiles={goToProfiles}
           isLoading={isLoading}
         />
       )}
@@ -450,6 +456,9 @@ export default function QuizApp() {
           onBackToSplash={backToSplash}
           currentUser={currentUser}
         />
+      )}
+      {currentView === 'profiles' && (
+        <ProfilesPage onBackToSplash={backToSplash} />
       )}
     </div>
   );

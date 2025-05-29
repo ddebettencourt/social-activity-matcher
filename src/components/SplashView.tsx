@@ -4,10 +4,11 @@ interface SplashViewProps {
   onStartQuiz: () => void;
   onLogin: (username: string) => void;
   onCustomEvent: () => void;
+  onProfiles: () => void;
   isLoading: boolean;
 }
 
-export default function SplashView({ onStartQuiz, onLogin, onCustomEvent, isLoading }: SplashViewProps) {
+export default function SplashView({ onStartQuiz, onLogin, onCustomEvent, onProfiles, isLoading }: SplashViewProps) {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [username, setUsername] = useState('');
 
@@ -60,6 +61,13 @@ export default function SplashView({ onStartQuiz, onLogin, onCustomEvent, isLoad
               disabled={isLoading}
             >
               🔮 analyze custom event
+            </button>
+            <button
+              onClick={onProfiles}
+              className="playful-button-secondary text-base sm:text-lg px-4 sm:px-6 py-3 w-full sm:w-auto min-w-48 min-h-[48px]"
+              disabled={isLoading}
+            >
+              📊 view all profiles
             </button>
           </div>
         </div>
