@@ -24,20 +24,13 @@ export interface ProfileSummary {
     q1: number;
     q3: number;
   };
-  topActivities: Array<{
-    rank: number;
-    title: string;
-    elo: number;
-    percentile: number;
-  }>;
-  bottomActivities: Array<{
+  allActivities: Array<{
     rank: number;
     title: string;
     elo: number;
     percentile: number;
   }>;
   tagAnalysis: TagAnalysis[];
-  personalityInsights: string[];
   dimensions: {
     socialIntensity: { preference: string; score: number; explanation: string };
     structure: { preference: string; score: number; explanation: string };
@@ -76,8 +69,8 @@ function analyzeTag(tag: string, userActivities: Activity[]): TagAnalysis | null
     activity.tags && activity.tags.some(actTag => normalizeTag(actTag) === normalizedTag)
   );
   
-  if (activitiesWithTag.length < 2) {
-    return null; // Need at least 2 activities for meaningful statistics
+  if (activitiesWithTag.length < 3) {
+    return null; // Need at least 3 activities for meaningful statistics
   }
   
   // Calculate overall statistics
@@ -252,67 +245,6 @@ function analyzeDimensions(activities: Activity[]): ProfileSummary['dimensions']
   return results as ProfileSummary['dimensions'];
 }
 
-// Generate personality insights based on preferences
-function generatePersonalityInsights(
-  profileSummary: Omit<ProfileSummary, 'personalityInsights'>
-): string[] {
-  const insights: string[] = [];
-  const { dimensions, tagAnalysis, overallStats } = profileSummary;
-  
-  // Overall engagement level
-  if (overallStats.standardDeviation > 100) {
-    insights.push('Has strong preferences - clear likes and dislikes with significant ELO spread');
-  } else if (overallStats.standardDeviation < 50) {
-    insights.push('Has balanced preferences - tends to rate most activities similarly');
-  }
-  
-  // Dimensional personality traits
-  const traits: string[] = [];
-  if (dimensions.socialIntensity.score >= 7) traits.push('extroverted');
-  else if (dimensions.socialIntensity.score <= 3) traits.push('introverted');
-  
-  if (dimensions.novelty.score >= 7) traits.push('adventurous');
-  else if (dimensions.novelty.score <= 3) traits.push('traditional');
-  
-  if (dimensions.energyLevel.score >= 7) traits.push('high-energy');
-  else if (dimensions.energyLevel.score <= 3) traits.push('low-key');
-  
-  if (dimensions.structure.score >= 7) traits.push('organized');
-  else if (dimensions.structure.score <= 3) traits.push('spontaneous');
-  
-  if (traits.length > 0) {
-    insights.push(`Personality type: ${traits.join(', ')}`);
-  }
-  
-  // Strong tag preferences
-  const strongPositiveTags = tagAnalysis
-    .filter(t => t.zScore > 2)
-    .slice(0, 3)
-    .map(t => t.tag);
-  
-  const strongNegativeTags = tagAnalysis
-    .filter(t => t.zScore < -2)
-    .slice(0, 3)
-    .map(t => t.tag);
-  
-  if (strongPositiveTags.length > 0) {
-    insights.push(`Strong affinity for: ${strongPositiveTags.join(', ')}`);
-  }
-  
-  if (strongNegativeTags.length > 0) {
-    insights.push(`Tends to avoid: ${strongNegativeTags.join(', ')}`);
-  }
-  
-  // Activity preferences based on top choices
-  const topCategories = profileSummary.topActivities
-    .slice(0, 5)
-    .map(a => a.title)
-    .join(', ');
-  
-  insights.push(`Top preferred activities: ${topCategories}`);
-  
-  return insights;
-}
 
 // Generate comprehensive profile summary
 export function generateProfileSummary(
@@ -334,10 +266,8 @@ export function generateProfileSummary(
         q1: 0,
         q3: 0
       },
-      topActivities: [],
-      bottomActivities: [],
+      allActivities: [],
       tagAnalysis: [],
-      personalityInsights: ['No quiz data available'],
       dimensions: {
         socialIntensity: { preference: 'Unknown', score: 0, explanation: 'No data' },
         structure: { preference: 'Unknown', score: 0, explanation: 'No data' },
@@ -365,8 +295,8 @@ export function generateProfileSummary(
   const q1 = sortedElos[q1Index];
   const q3 = sortedElos[q3Index];
   
-  // Get top and bottom activities
-  const rankedActivities = [...activityData]
+  // Get all activities ranked by ELO
+  const allActivities = [...activityData]
     .sort((a, b) => b.elo - a.elo)
     .map((activity, index) => ({
       rank: index + 1,
@@ -374,9 +304,6 @@ export function generateProfileSummary(
       elo: activity.elo,
       percentile: 1 - (index / activityData.length)
     }));
-  
-  const topActivities = rankedActivities.slice(0, 15);
-  const bottomActivities = rankedActivities.slice(-10).reverse();
   
   // Analyze all tags
   const allTags = getAllTags(activityData);
@@ -388,8 +315,8 @@ export function generateProfileSummary(
   // Analyze dimensional preferences
   const dimensions = analyzeDimensions(activityData);
   
-  // Create base profile summary
-  const baseProfile: Omit<ProfileSummary, 'personalityInsights'> = {
+  // Return profile summary
+  return {
     username,
     totalMatchups,
     completionDate: new Date().toISOString().split('T')[0], // Today's date as placeholder
@@ -404,18 +331,9 @@ export function generateProfileSummary(
       q1: Number(q1.toFixed(1)),
       q3: Number(q3.toFixed(1))
     },
-    topActivities,
-    bottomActivities,
+    allActivities,
     tagAnalysis,
     dimensions
-  };
-  
-  // Generate personality insights
-  const personalityInsights = generatePersonalityInsights(baseProfile);
-  
-  return {
-    ...baseProfile,
-    personalityInsights
   };
 }
 
@@ -459,71 +377,33 @@ export function generateCopyableProfileSummary(profiles: ProfileSummary[]): stri
     Object.entries(profile.dimensions).forEach(([dim, data]) => {
       const dimName = dim.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
       output += `${dimName}: ${data.preference} (${data.score}/10)\n`;
-      output += `  ${data.explanation}\n`;
     });
     output += `\n`;
     
-    // Personality insights
-    output += `PERSONALITY INSIGHTS:\n`;
-    output += `-`.repeat(21) + `\n`;
-    profile.personalityInsights.forEach(insight => {
-      output += `• ${insight}\n`;
+    // All activities with percentiles
+    output += `ALL ACTIVITIES (by percentile):\n`;
+    output += `-`.repeat(32) + `\n`;
+    profile.allActivities.forEach(activity => {
+      output += `${activity.rank.toString().padStart(3)}. ${activity.title.padEnd(50)} ${(activity.percentile * 100).toFixed(1).padStart(5)}%\n`;
     });
     output += `\n`;
     
-    // Top activities
-    output += `TOP 15 ACTIVITIES (by ELO):\n`;
-    output += `-`.repeat(28) + `\n`;
-    profile.topActivities.forEach(activity => {
-      output += `${activity.rank.toString().padStart(2)}. ${activity.title.padEnd(40)} ELO: ${activity.elo.toString().padStart(4)} (${(activity.percentile * 100).toFixed(1)}%)\n`;
-    });
-    output += `\n`;
-    
-    // Bottom activities
-    output += `BOTTOM 10 ACTIVITIES:\n`;
-    output += `-`.repeat(21) + `\n`;
-    profile.bottomActivities.forEach(activity => {
-      output += `${activity.rank.toString().padStart(2)}. ${activity.title.padEnd(40)} ELO: ${activity.elo.toString().padStart(4)} (${(activity.percentile * 100).toFixed(1)}%)\n`;
-    });
-    output += `\n`;
-    
-    // Tag analysis (significant tags only)
-    const significantTags = profile.tagAnalysis.filter(t => Math.abs(t.zScore) > 0.5);
-    if (significantTags.length > 0) {
-      output += `TAG ANALYSIS (Z-Scores):\n`;
-      output += `-`.repeat(24) + `\n`;
-      output += `Tag Name                          Count   Avg ELO   Z-Score   Significance   Percentile\n`;
-      output += `-`.repeat(85) + `\n`;
+    // All tag analysis
+    if (profile.tagAnalysis.length > 0) {
+      output += `TAG ANALYSIS:\n`;
+      output += `-`.repeat(13) + `\n`;
+      output += `Tag Name                          Count   Z-Score   Percentile\n`;
+      output += `-`.repeat(65) + `\n`;
       
-      significantTags.slice(0, 20).forEach(tag => { // Top 20 most significant
+      profile.tagAnalysis.forEach(tag => {
         output += `${tag.tag.padEnd(32)} ${tag.activityCount.toString().padStart(5)} `;
-        output += `${tag.userAvgElo.toString().padStart(7)} `;
         output += `${tag.zScore.toString().padStart(7)} `;
-        output += `${tag.significance.padEnd(13)} `;
         output += `${(tag.percentile * 100).toFixed(1).padStart(9)}%\n`;
-      });
-      
-      output += `\n`;
-      
-      // Top activities for most significant tags
-      significantTags.slice(0, 5).forEach(tag => {
-        output += `${tag.tag} - Top Activities:\n`;
-        output += `  ${tag.topActivities.slice(0, 3).join(', ')}\n`;
       });
       output += `\n`;
     }
     
-    // Full ELO rankings
-    output += `COMPLETE ELO RANKINGS:\n`;
-    output += `-`.repeat(22) + `\n`;
-    const sortedByElo = [...profile.topActivities, ...profile.bottomActivities.slice(0, -profile.topActivities.length)]
-      .sort((a, b) => b.elo - a.elo);
-    
-    sortedByElo.forEach(activity => {
-      output += `${activity.rank.toString().padStart(3)}. ${activity.title.padEnd(50)} ${activity.elo.toString().padStart(4)}\n`;
-    });
-    
-    output += `\n${'='.repeat(80)}\n\n`;
+    output += `${'='.repeat(80)}\n\n`;
   });
   
   return output;
