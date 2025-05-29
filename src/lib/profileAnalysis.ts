@@ -310,7 +310,7 @@ export function generateProfileSummary(
   const tagAnalysis = allTags
     .map(tag => analyzeTag(tag, activityData))
     .filter((analysis): analysis is TagAnalysis => analysis !== null)
-    .sort((a, b) => Math.abs(b.zScore) - Math.abs(a.zScore)); // Sort by significance
+    .sort((a, b) => a.zScore - b.zScore); // Sort from negative to positive z-scores
   
   // Analyze dimensional preferences
   const dimensions = analyzeDimensions(activityData);
