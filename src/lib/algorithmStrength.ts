@@ -173,7 +173,10 @@ export function calculateAlgorithmStrength(
   
   // Determine confidence level based on score and sample size
   const sampleRatio = recentPredictions.length / ALGORITHM_HISTORY_SIZE;
-  const minPredictionsForReady = 20; // Need at least 20 predictions before considering ready
+  const minPredictionsForReady = 20; // Need at least 20 predictions TOTAL before considering ready
+  
+  // Count total predictions (not just recent ones)
+  const totalPredictions = predictionHistory.filter(p => p.wasCorrect !== null).length;
   
   let confidence: 'low' | 'medium' | 'high' = 'low';
   
@@ -194,10 +197,10 @@ export function calculateAlgorithmStrength(
   
   // Algorithm is ready when:
   // 1. Score meets adjusted threshold AND
-  // 2. We have at least 10 predictions AND  
+  // 2. We have at least 20 total predictions AND  
   // 3. Sample ratio is good (at least 70% of target history size)
   const isReady = score >= adjustedThreshold && 
-                  recentPredictions.length >= minPredictionsForReady && 
+                  totalPredictions >= minPredictionsForReady && 
                   sampleRatio >= 0.7;
   
   return {
