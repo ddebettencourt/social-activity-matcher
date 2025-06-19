@@ -14,6 +14,7 @@ export interface Activity {
   matchups?: number;
   wins?: number;
   chosenCount?: number;
+  iconType?: string;
 }
 
 export interface DimensionMeta {

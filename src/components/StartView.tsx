@@ -22,7 +22,7 @@ export default function StartView({ onStartQuiz, currentUser, onBackToSplash }: 
             ready to <span className="font-bold bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent">discover</span> your style?
           </h1>
           <p className="text-gray-400 text-sm sm:text-base max-w-md mx-auto leading-relaxed">
-            pick your favorites in 1v1 matchups, and we'll learn your preferences
+            pick your favorites in 1v1 matchups, and we&apos;ll learn your preferences
           </p>
         </header>
         
@@ -31,7 +31,7 @@ export default function StartView({ onStartQuiz, currentUser, onBackToSplash }: 
             onClick={onStartQuiz}
             className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-medium text-lg px-8 py-4 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
           >
-            let's go! ✨
+            let&apos;s go! ✨
           </button>
           
           <div className="space-y-3">

@@ -13,6 +13,8 @@ interface ProfileViewProps {
   onViewFullResults: () => void;
   onBackToSplash: () => void;
   onClearData: () => void;
+  onCustomEvent: () => void;
+  onProfiles: () => void;
 }
 
 export default function ProfileView({ 
@@ -22,7 +24,9 @@ export default function ProfileView({
   onContinueQuiz, 
   onViewFullResults, 
   onBackToSplash,
-  onClearData 
+  onClearData,
+  onCustomEvent,
+  onProfiles
 }: ProfileViewProps) {
   const [, setPreferenceDrivers] = useState<PreferenceDriver[]>([]);
   const [personaName, setPersonaName] = useState<string>("Analyzing...");
@@ -244,6 +248,18 @@ export default function ProfileView({
               className="playful-button-secondary"
             >
               📋 full analysis
+            </button>
+            <button 
+              onClick={onCustomEvent}
+              className="playful-button-secondary"
+            >
+              🔮 test custom event
+            </button>
+            <button 
+              onClick={onProfiles}
+              className="playful-button-secondary"
+            >
+              📊 view all profiles
             </button>
             <button 
               onClick={onClearData}

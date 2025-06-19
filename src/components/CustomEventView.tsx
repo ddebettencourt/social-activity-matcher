@@ -5,7 +5,7 @@ import { User } from '@/types/quiz';
 import { analyzeCustomEventForAllUsers } from '@/lib/customEventAnalysis';
 
 interface CustomEventViewProps {
-  onBackToSplash: () => void;
+  onBackToProfile: () => void;
   currentUser: User | null;
 }
 
@@ -57,7 +57,7 @@ interface CustomEventAnalysis {
   userPredictions: UserPrediction[];
 }
 
-export default function CustomEventView({ onBackToSplash, currentUser }: CustomEventViewProps) {
+export default function CustomEventView({ onBackToProfile, currentUser }: CustomEventViewProps) {
   const [eventDescription, setEventDescription] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysis, setAnalysis] = useState<CustomEventAnalysis | null>(null);
@@ -467,10 +467,10 @@ export default function CustomEventView({ onBackToSplash, currentUser }: CustomE
         {/* Navigation */}
         <section className="text-center">
           <button 
-            onClick={onBackToSplash}
+            onClick={onBackToProfile}
             className="playful-button-secondary"
           >
-            ← back to home
+            ← back to profile
           </button>
         </section>
       </main>

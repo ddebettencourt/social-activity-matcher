@@ -1,5 +1,6 @@
 import { Activity } from '@/types/quiz';
 import { dimensionsMeta } from './constants';
+import { getActivityIcon } from './iconMapping';
 
 export function parseCSVData(csvText: string): Activity[] | null {
   console.log("Attempting to parse CSV data...");
@@ -81,6 +82,11 @@ export function parseCSVData(csvText: string): Activity[] | null {
           activity[dim.key as keyof Activity] = 5 as never; 
         }
       });
+
+      // Add icon type based on activity title and tags
+      if (activity.title && activity.tags) {
+        activity.iconType = getActivityIcon(activity.title, activity.tags);
+      }
 
       if (validEntry) activities.push(activity as Activity);
     } catch (e) { 

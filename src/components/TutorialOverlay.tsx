@@ -11,7 +11,7 @@ export default function TutorialOverlay({ onComplete }: TutorialOverlayProps) {
   const [chosenSnakes, setChosenSnakes] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
 
-  const handleChoice = (activityId: 'snakes' | 'dinner', strength: 'strong' | 'somewhat') => {
+  const handleChoice = (activityId: 'snakes' | 'dinner') => {
     if (isTransitioning) return;
     
     setIsTransitioning(true);
@@ -77,7 +77,7 @@ export default function TutorialOverlay({ onComplete }: TutorialOverlayProps) {
                 {/* Strong preference zone */}
                 <div 
                   className="cursor-pointer flex-1 p-4 hover:bg-pink-600/20 transition-colors duration-200 relative"
-                  onClick={() => !isTransitioning && handleChoice('snakes', 'strong')}
+                  onClick={() => !isTransitioning && handleChoice('snakes')}
                 >
                   <div className="pb-1">
                     <h3 className="text-white font-semibold mb-1">Falling Into a Pit of Snakes</h3>
@@ -94,7 +94,7 @@ export default function TutorialOverlay({ onComplete }: TutorialOverlayProps) {
                 {/* Somewhat preference zone */}
                 <div 
                   className="cursor-pointer py-3 px-4 hover:bg-blue-500/20 transition-colors duration-200 relative"
-                  onClick={() => !isTransitioning && handleChoice('snakes', 'somewhat')}
+                  onClick={() => !isTransitioning && handleChoice('snakes')}
                 >
                   <div className="text-center">
                     <div className="text-xs text-blue-400 font-medium">👍 somewhat prefer</div>
@@ -116,7 +116,7 @@ export default function TutorialOverlay({ onComplete }: TutorialOverlayProps) {
                 {/* Strong preference zone */}
                 <div 
                   className="cursor-pointer flex-1 p-4 hover:bg-pink-600/20 transition-colors duration-200 relative"
-                  onClick={() => !isTransitioning && handleChoice('dinner', 'strong')}
+                  onClick={() => !isTransitioning && handleChoice('dinner')}
                 >
                   <div className="pb-1">
                     <h3 className="text-white font-semibold mb-1">Nice Dinner With Friends</h3>
@@ -133,7 +133,7 @@ export default function TutorialOverlay({ onComplete }: TutorialOverlayProps) {
                 {/* Somewhat preference zone */}
                 <div 
                   className="cursor-pointer py-3 px-4 hover:bg-blue-500/20 transition-colors duration-200 relative"
-                  onClick={() => !isTransitioning && handleChoice('dinner', 'somewhat')}
+                  onClick={() => !isTransitioning && handleChoice('dinner')}
                 >
                   <div className="text-center">
                     <div className="text-xs text-blue-400 font-medium">👍 somewhat prefer</div>
@@ -150,7 +150,7 @@ export default function TutorialOverlay({ onComplete }: TutorialOverlayProps) {
             <div className="bg-gray-800 border border-gray-600 rounded-lg p-4 mb-4">
               <div className="space-y-2 text-sm text-gray-300">
                 <p><strong className="text-pink-400">🎯 Top half</strong> = Strongly prefer (you really want this!)</p>
-                <p><strong className="text-blue-400">👍 Bottom half</strong> = Somewhat prefer (it's a little better, I guess)</p>
+                <p><strong className="text-blue-400">👍 Bottom half</strong> = Somewhat prefer (it&apos;s a little better, I guess)</p>
                 <p><strong className="text-gray-400">🤔 Other options</strong> = Both sound good, or neither appeals</p>
               </div>
             </div>
@@ -159,9 +159,9 @@ export default function TutorialOverlay({ onComplete }: TutorialOverlayProps) {
           {step === 2 && (
             <div className="bg-gray-800 border border-gray-600 rounded-lg p-4 mb-4">
               <div className="space-y-2 text-sm text-gray-300">
-                <p><strong className="text-purple-400">🧠 The Algorithm</strong> learns your patterns and gets better at predicting what you'll choose</p>
+                <p><strong className="text-purple-400">🧠 The Algorithm</strong> learns your patterns and gets better at predicting what you&apos;ll choose</p>
                 <p><strong className="text-blue-400">📊 Progress Bar</strong> shows how confident the algorithm is about your preferences</p>
-                <p>Once the algorithm finishes learning your preferences, you'll be shown some unique insights about yourself!</p>
+                <p>Once the algorithm finishes learning your preferences, you&apos;ll be shown some unique insights about yourself!</p>
               </div>
             </div>
           )}

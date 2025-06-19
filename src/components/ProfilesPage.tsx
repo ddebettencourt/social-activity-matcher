@@ -15,10 +15,10 @@ interface UserProfile {
 }
 
 interface ProfilesPageProps {
-  onBackToSplash?: () => void;
+  onBackToProfile?: () => void;
 }
 
-export default function ProfilesPage({ onBackToSplash }: ProfilesPageProps = {}) {
+export default function ProfilesPage({ onBackToProfile }: ProfilesPageProps = {}) {
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -154,13 +154,13 @@ export default function ProfilesPage({ onBackToSplash }: ProfilesPageProps = {})
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          {onBackToSplash && (
+          {onBackToProfile && (
             <div className="flex justify-start mb-4">
               <button
-                onClick={onBackToSplash}
+                onClick={onBackToProfile}
                 className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
               >
-                ← Back to Home
+                ← Back to Profile
               </button>
             </div>
           )}

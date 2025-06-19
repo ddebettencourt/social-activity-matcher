@@ -5,7 +5,7 @@ import { Activity, QuizState, MatchupPrediction, PreferenceStrength, User } from
 import { ABSOLUTE_MAX_MATCHUPS, RECENT_HISTORY_SIZE } from '@/lib/constants';
 import { processChoice } from '@/lib/eloCalculations';
 import { makePrediction, updatePredictionWithResult, calculateAlgorithmStrength } from '@/lib/algorithmStrength';
-import AlgorithmStrengthMeter from './AlgorithmStrengthMeter';
+// import AlgorithmStrengthMeter from './AlgorithmStrengthMeter';
 import TutorialOverlay from './TutorialOverlay';
 
 interface QuizViewProps {
