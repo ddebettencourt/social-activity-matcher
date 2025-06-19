@@ -401,13 +401,11 @@ export default function QuizApp() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen">
+    <div className={`flex items-center justify-center min-h-screen ${['splash', 'start', 'quiz'].includes(currentView) ? 'bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900' : ''}`}>
       {currentView === 'splash' && (
         <SplashView 
           onStartQuiz={startQuizFromSplash}
           onLogin={loginUser}
-          onCustomEvent={goToCustomEvent}
-          onProfiles={goToProfiles}
           isLoading={isLoading}
         />
       )}
@@ -437,6 +435,8 @@ export default function QuizApp() {
           onViewFullResults={viewFullResults}
           onBackToSplash={backToSplash}
           onClearData={clearAllDataAndRetake}
+          onCustomEvent={goToCustomEvent}
+          onProfiles={goToProfiles}
         />
       )}
       {currentView === 'results' && (
@@ -453,12 +453,12 @@ export default function QuizApp() {
       )}
       {currentView === 'customEvent' && (
         <CustomEventView 
-          onBackToSplash={backToSplash}
+          onBackToProfile={backToProfile}
           currentUser={currentUser}
         />
       )}
       {currentView === 'profiles' && (
-        <ProfilesPage onBackToSplash={backToSplash} />
+        <ProfilesPage onBackToProfile={backToProfile} />
       )}
     </div>
   );

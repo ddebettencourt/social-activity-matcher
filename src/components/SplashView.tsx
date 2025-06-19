@@ -1,14 +1,13 @@
 import { useState } from 'react';
+import AnimatedSparks from './AnimatedSparks';
 
 interface SplashViewProps {
   onStartQuiz: () => void;
   onLogin: (username: string) => void;
-  onCustomEvent: () => void;
-  onProfiles: () => void;
   isLoading: boolean;
 }
 
-export default function SplashView({ onStartQuiz, onLogin, onCustomEvent, onProfiles, isLoading }: SplashViewProps) {
+export default function SplashView({ onStartQuiz, onLogin, isLoading }: SplashViewProps) {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [username, setUsername] = useState('');
 
@@ -22,87 +21,69 @@ export default function SplashView({ onStartQuiz, onLogin, onCustomEvent, onProf
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-100 via-blue-50 to-emerald-100 flex items-center justify-center px-4">
-      <div className="max-w-2xl w-full text-center">
+    <div className="w-full flex items-center justify-center px-4 relative">
+      {/* Animated sparks background */}
+      <AnimatedSparks />
+      
+      <div className="max-w-lg w-full text-center relative z-10">
         {/* Main Logo/Title */}
-        <div className="mb-8 -mt-8">
-          <div className="text-6xl md:text-8xl mb-4 md:mb-6">🧬</div>
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 via-blue-600 to-emerald-600 mb-6 md:mb-8 leading-tight py-2 md:py-4">
-            find your social genes
+        <div className="mb-12">
+          <div className="text-6xl md:text-7xl mb-6">✨</div>
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-light text-white mb-4 leading-tight">
+            a <span className="font-bold bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent">spark</span> for your social life
           </h1>
-          <p className="text-sm sm:text-base text-gray-600 max-w-xl mx-auto px-4">
-            take our fun quiz to uncover your social preferences and get personalized activity recommendations
+          <p className="text-gray-400 text-sm sm:text-base max-w-md mx-auto leading-relaxed">
+            the right activities, with the right people
           </p>
         </div>
 
         {/* Action Buttons */}
-        <div className="space-y-4 mb-8">
+        <div className="space-y-4 mb-12">
           <button
             onClick={onStartQuiz}
-            className="playful-button-primary text-lg sm:text-xl px-6 sm:px-8 py-3 sm:py-4 w-full md:w-auto min-w-64 min-h-[48px]"
+            className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-medium text-lg px-8 py-4 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-50 disabled:transform-none"
             disabled={isLoading}
           >
-            🚀 start the quiz!
+            {isLoading ? '⏳ starting...' : 'start the quiz'}
           </button>
           
-          <div className="text-gray-500 text-sm sm:text-base">or</div>
-          
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <button
-              onClick={() => setShowLoginModal(true)}
-              className="playful-button-secondary text-base sm:text-lg px-4 sm:px-6 py-3 w-full sm:w-auto min-w-48 min-h-[48px]"
-              disabled={isLoading}
-            >
-              {isLoading ? '⏳ loading...' : '👤 log in to profile'}
-            </button>
-            <button
-              onClick={onCustomEvent}
-              className="playful-button-secondary text-base sm:text-lg px-4 sm:px-6 py-3 w-full sm:w-auto min-w-48 min-h-[48px]"
-              disabled={isLoading}
-            >
-              🔮 analyze custom event
-            </button>
-            <button
-              onClick={onProfiles}
-              className="playful-button-secondary text-base sm:text-lg px-4 sm:px-6 py-3 w-full sm:w-auto min-w-48 min-h-[48px]"
-              disabled={isLoading}
-            >
-              📊 view all profiles
-            </button>
-          </div>
+          <button
+            onClick={() => setShowLoginModal(true)}
+            className="w-full bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white text-sm px-6 py-3 rounded-lg transition-all duration-200 border border-gray-700 hover:border-gray-600 disabled:opacity-50"
+            disabled={isLoading}
+          >
+            {isLoading ? 'loading...' : 'log in'}
+          </button>
         </div>
 
-        {/* Fun Facts */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 text-center text-xs sm:text-sm text-gray-600">
-          <div className="playful-card p-3 sm:p-4">
-            <div className="text-xl sm:text-2xl mb-1 sm:mb-2">⚡</div>
-            <div>takes 5-10 minutes</div>
+        {/* Feature highlights */}
+        <div className="grid grid-cols-3 gap-4 text-center text-xs text-gray-500">
+          <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-3 border border-gray-700/50">
+            <div className="text-lg mb-1">⚡</div>
+            <div>5-10 minutes</div>
           </div>
-          <div className="playful-card p-3 sm:p-4">
-            <div className="text-xl sm:text-2xl mb-1 sm:mb-2">🎯</div>
-            <div>smart algorithm learns you</div>
+          <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-3 border border-gray-700/50">
+            <div className="text-lg mb-1">🧠</div>
+            <div>adaptive learning</div>
           </div>
-          <div className="playful-card p-3 sm:p-4">
-            <div className="text-xl sm:text-2xl mb-1 sm:mb-2">🎪</div>
-            <div>170+ activity options</div>
+          <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-3 border border-gray-700/50">
+            <div className="text-lg mb-1">🎯</div>
+            <div>170+ activities</div>
           </div>
         </div>
       </div>
 
       {/* Login Modal */}
       {showLoginModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full playful-card">
-            <h2 className="text-2xl font-bold text-center mb-4 text-purple-700">
-              👋 welcome back!
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-gray-900 border border-gray-700 rounded-xl p-6 max-w-sm w-full shadow-2xl">
+            <h2 className="text-xl font-medium text-center mb-6 text-white">
+              welcome back
             </h2>
-            <p className="text-gray-600 text-center mb-6">
-              enter your username to load your profile
-            </p>
             
             <form onSubmit={handleLogin} className="space-y-4">
               <div>
-                <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="username" className="block text-sm font-medium text-gray-300 mb-2">
                   username
                 </label>
                 <input
@@ -110,25 +91,25 @@ export default function SplashView({ onStartQuiz, onLogin, onCustomEvent, onProf
                   id="username"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  placeholder="your username"
+                  className="w-full px-3 py-3 bg-gray-800 border border-gray-600 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent placeholder-gray-400"
+                  placeholder="enter your username"
                   autoFocus
                   disabled={isLoading}
                 />
               </div>
               
-              <div className="flex gap-3">
+              <div className="flex gap-3 pt-2">
                 <button
                   type="button"
                   onClick={() => setShowLoginModal(false)}
-                  className="flex-1 playful-button-secondary py-2"
+                  className="flex-1 bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white py-3 rounded-lg transition-all duration-200 border border-gray-600 hover:border-gray-500"
                   disabled={isLoading}
                 >
                   cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 playful-button-primary py-2"
+                  className="flex-1 bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white py-3 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50"
                   disabled={!username.trim() || isLoading}
                 >
                   {isLoading ? 'loading...' : 'log in'}
@@ -137,7 +118,7 @@ export default function SplashView({ onStartQuiz, onLogin, onCustomEvent, onProf
             </form>
             
             <p className="text-xs text-gray-500 text-center mt-4">
-              don&apos;t have a profile? take the quiz and we&apos;ll help you create one!
+              new? just start the quiz to get started
             </p>
           </div>
         </div>

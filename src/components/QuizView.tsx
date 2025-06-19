@@ -6,6 +6,7 @@ import { ABSOLUTE_MAX_MATCHUPS, RECENT_HISTORY_SIZE } from '@/lib/constants';
 import { processChoice } from '@/lib/eloCalculations';
 import { makePrediction, updatePredictionWithResult, calculateAlgorithmStrength } from '@/lib/algorithmStrength';
 import AlgorithmStrengthMeter from './AlgorithmStrengthMeter';
+import TutorialOverlay from './TutorialOverlay';
 
 interface QuizViewProps {
   quizState: QuizState;
@@ -33,6 +34,10 @@ const handleEndEarly = (onFinishQuiz: () => void, currentUser: User | null, onSt
 export default function QuizView({ quizState, setQuizState, onFinishQuiz, currentUser, onStopQuiz, onSaveProgress }: QuizViewProps) {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [currentPrediction, setCurrentPrediction] = useState<MatchupPrediction | null>(null);
+  const [showTutorial, setShowTutorial] = useState(() => {
+    // Show tutorial on first visit for new users (first matchup)
+    return quizState.currentMatchup === 0;
+  });
 
   useEffect(() => {
     if (quizState.activityData.length >= 2 && !quizState.currentActivityA && !quizState.currentActivityB) {
@@ -299,172 +304,305 @@ export default function QuizView({ quizState, setQuizState, onFinishQuiz, curren
   const progressPercentage = quizState.currentMatchup >= quizState.minMatchups 
     ? Math.min(100, (quizState.algorithmStrength.score / quizState.targetStrength) * 100)
     : (quizState.currentMatchup / quizState.minMatchups) * 50; // First 50% is just getting to min matchups
+    
+  // Get algorithm status for combined display
+  const getAlgorithmStatus = () => {
+    const isTrackingStarted = quizState.currentMatchup >= quizState.minMatchups;
+    
+    if (!isTrackingStarted) {
+      return {
+        emoji: "🤔",
+        title: "Getting to know you...",
+        subtitle: `${quizState.minMatchups - quizState.currentMatchup} more to start tracking`,
+        color: "text-blue-600",
+        bgColor: "bg-blue-50",
+        borderColor: "border-blue-200"
+      };
+    }
+    
+    if (quizState.algorithmStrength.isReady) {
+      return {
+        emoji: "🎯",
+        title: "I've got your style!",
+        subtitle: "Ready to finish anytime",
+        color: "text-emerald-600",
+        bgColor: "bg-emerald-50",
+        borderColor: "border-emerald-200"
+      };
+    } else if (quizState.algorithmStrength.confidence === 'high') {
+      return {
+        emoji: "🧠",
+        title: "Almost there!",
+        subtitle: "Getting good at predicting",
+        color: "text-amber-600",
+        bgColor: "bg-amber-50",
+        borderColor: "border-amber-200"
+      };
+    } else if (quizState.algorithmStrength.confidence === 'medium') {
+      return {
+        emoji: "🤖",
+        title: "Learning your patterns...",
+        subtitle: "Starting to understand",
+        color: "text-blue-600",
+        bgColor: "bg-blue-50",
+        borderColor: "border-blue-200"
+      };
+    } else {
+      return {
+        emoji: "📚",
+        title: "Figuring you out...",
+        subtitle: "Your preferences are unique",
+        color: "text-gray-600",
+        bgColor: "bg-gray-50",
+        borderColor: "border-gray-200"
+      };
+    }
+  };
+
+  const algorithmStatus = getAlgorithmStatus();
+
+  const handleTutorialComplete = () => {
+    setShowTutorial(false);
+  };
 
   if (!quizState.currentActivityA || !quizState.currentActivityB) {
     return (
-      <div className="view-container w-full max-w-5xl">
-        <header className="mb-4 md:mb-6 text-center">
-          <h1>would you rather...</h1>
-          <div className="w-full progress-bar-container rounded-full h-4 md:h-5 mb-1">
-            <div className="progress-bar-fill h-3 md:h-4" style={{ width: `${progressPercentage}%` }}></div>
+      <div className="w-full max-w-5xl mx-auto px-4">
+        <header className="mb-2 md:mb-6 text-center">
+          <h1 className="hidden md:block text-2xl md:text-3xl font-light text-white mb-4">would you rather...</h1>
+          
+          {/* Combined progress and algorithm status */}
+          <div className="w-full bg-gray-800/70 backdrop-blur-sm rounded-xl p-3 mb-2 md:p-4 md:mb-4 border border-gray-700">
+            <div className="flex items-center gap-3 mb-3">
+              <span className="text-xl">{algorithmStatus.emoji}</span>
+              <div className="flex-1 text-left">
+                <div className="text-sm font-semibold text-white">{algorithmStatus.title}</div>
+                <div className="text-xs text-gray-400">{algorithmStatus.subtitle}</div>
+              </div>
+              <div className="text-xs text-right text-gray-400">
+                {(() => {
+                  if (quizState.currentMatchup >= quizState.minMatchups) {
+                    const predictions = quizState.algorithmStrength.predictionHistory.filter(p => p.wasCorrect !== null);
+                    const correct = predictions.filter(p => p.wasCorrect === true).length;
+                    return `${correct}/${predictions.length} correct`;
+                  } else {
+                    return `${quizState.currentMatchup}/${quizState.minMatchups}`;
+                  }
+                })()}
+              </div>
+            </div>
+            
+            {/* Combined progress bar */}
+            <div className="w-full bg-gray-700 rounded-full h-3 mb-2">
+              <div className="bg-gradient-to-r from-pink-500 to-purple-600 h-3 rounded-full transition-all duration-300" style={{ width: `${progressPercentage}%` }}></div>
+            </div>
+            
+            {/* Recent predictions dots - only show when tracking */}
+            {quizState.currentMatchup >= quizState.minMatchups && (() => {
+              const predictions = quizState.algorithmStrength.predictionHistory.filter(p => p.wasCorrect !== null);
+              return predictions.length > 0 && (
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-gray-400">Recent predictions:</span>
+                  <div className="flex gap-1">
+                    {quizState.algorithmStrength.predictionHistory
+                      .slice(-6) // Show last 6 predictions for mobile
+                      .map((prediction, index) => (
+                        <div
+                          key={index}
+                          className={`w-2 h-2 rounded-full ${prediction.wasCorrect === true ? 'bg-emerald-400' : prediction.wasCorrect === false ? 'bg-red-400' : 'bg-gray-600'}`}
+                        />
+                      ))}
+                  </div>
+                </div>
+              );
+            })()}
           </div>
-          <p className="text-xs md:text-sm text-brown-600">thinking...</p>
+          
+          <p className="text-xs md:text-sm text-gray-400">thinking...</p>
         </header>
         
-        <AlgorithmStrengthMeter 
-          algorithmStrength={quizState.algorithmStrength}
-          currentMatchup={quizState.currentMatchup}
-          minMatchups={quizState.minMatchups}
-          targetStrength={quizState.targetStrength}
-        />
-        <main className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-4 md:gap-6 items-stretch mb-4">
-          <div className="activity-card playful-card">
-            <div className="activity-card-content">
-              <h3 className="activity-title">loading...</h3>
-              <p className="activity-subtitle">just a sec...</p>
+        <main className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-2 md:gap-6 items-stretch mb-2 md:mb-4">
+          <div className="bg-gray-800/70 backdrop-blur-sm border border-gray-700 rounded-lg p-4">
+            <div className="">
+              <h3 className="text-white font-semibold mb-1">loading...</h3>
+              <p className="text-gray-300 text-sm">just a sec...</p>
             </div>
           </div>
-          <div className="flex items-center justify-center">
-            <span className="vs-separator">or maybe...</span>
+          <div className="flex items-center justify-center md:flex-col">
+            <span className="text-gray-400 md:text-sm text-base">or maybe...</span>
           </div>
-          <div className="activity-card playful-card md:mt-0 mt-4">
-            <div className="activity-card-content">
-              <h3 className="activity-title">loading...</h3>
-              <p className="activity-subtitle">hang on...</p>
+          <div className="bg-gray-800/70 backdrop-blur-sm border border-gray-700 rounded-lg p-4 md:mt-0 mt-2">
+            <div className="">
+              <h3 className="text-white font-semibold mb-1">loading...</h3>
+              <p className="text-gray-300 text-sm">hang on...</p>
             </div>
           </div>
         </main>
+        
+        {/* Tutorial Overlay */}
+        {showTutorial && (
+          <TutorialOverlay onComplete={handleTutorialComplete} />
+        )}
       </div>
     );
   }
 
   return (
-    <div className="view-container w-full max-w-5xl">
-      <header className="mb-4 md:mb-6 text-center">
-        <h1>would you rather...</h1>
-        <div className="w-full progress-bar-container rounded-full h-4 md:h-5 mb-1">
-          <div className="progress-bar-fill h-3 md:h-4" style={{ width: `${progressPercentage}%` }}></div>
+    <div className="w-full max-w-5xl mx-auto px-4">
+      <header className="mb-2 md:mb-6 text-center">
+        <h1 className="hidden md:block text-2xl md:text-3xl font-light text-white mb-4">would you rather...</h1>
+        
+        {/* Combined progress and algorithm status */}
+        <div className="w-full bg-gray-800/70 backdrop-blur-sm rounded-xl p-3 mb-2 md:p-4 md:mb-4 border border-gray-700">
+          <div className="flex items-center gap-3 mb-3">
+            <span className="text-xl">{algorithmStatus.emoji}</span>
+            <div className="flex-1 text-left">
+              <div className="text-sm font-semibold text-white">{algorithmStatus.title}</div>
+              <div className="text-xs text-gray-400">{algorithmStatus.subtitle}</div>
+            </div>
+            <div className="text-xs text-right text-gray-400">
+              {(() => {
+                if (quizState.currentMatchup >= quizState.minMatchups) {
+                  const predictions = quizState.algorithmStrength.predictionHistory.filter(p => p.wasCorrect !== null);
+                  const correct = predictions.filter(p => p.wasCorrect === true).length;
+                  return `${correct}/${predictions.length} correct`;
+                } else {
+                  return `${quizState.currentMatchup}/${quizState.minMatchups}`;
+                }
+              })()}
+            </div>
+          </div>
+          
+          {/* Combined progress bar */}
+          <div className="w-full bg-gray-700 rounded-full h-3 mb-2">
+            <div className="bg-gradient-to-r from-pink-500 to-purple-600 h-3 rounded-full transition-all duration-300" style={{ width: `${progressPercentage}%` }}></div>
+          </div>
+          
+          {/* Recent predictions dots - only show when tracking */}
+          {quizState.currentMatchup >= quizState.minMatchups && (() => {
+            const predictions = quizState.algorithmStrength.predictionHistory.filter(p => p.wasCorrect !== null);
+            return predictions.length > 0 && (
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-gray-500">Recent predictions:</span>
+                <div className="flex gap-1">
+                  {quizState.algorithmStrength.predictionHistory
+                    .slice(-6) // Show last 6 predictions for mobile
+                    .map((prediction, index) => (
+                      <div
+                        key={index}
+                        className={`w-2 h-2 rounded-full ${prediction.wasCorrect === true ? 'bg-emerald-400' : prediction.wasCorrect === false ? 'bg-red-400' : 'bg-gray-300'}`}
+                      />
+                    ))}
+                </div>
+              </div>
+            );
+          })()}
         </div>
-        <p className="text-xs md:text-sm text-brown-600">
-          choice #{quizState.currentMatchup} 
-          {quizState.currentMatchup >= quizState.minMatchups 
-            ? ` • ${quizState.algorithmStrength.isReady ? 'algorithm ready!' : 'learning your style...'}`
-            : ` • warming up... (${quizState.minMatchups - quizState.currentMatchup} more to start tracking)`
-          }
-        </p>
       </header>
       
-      <AlgorithmStrengthMeter 
-        algorithmStrength={quizState.algorithmStrength}
-        currentMatchup={quizState.currentMatchup}
-        minMatchups={quizState.minMatchups}
-        targetStrength={quizState.targetStrength}
-      />
-      
-      {/* Tutorial hint for first few matchups */}
-      {quizState.currentMatchup < 3 && (
-        <div className="bg-amber-50 border-2 border-dashed border-amber-400 rounded-lg p-3 mb-4 text-center">
-          <p className="text-sm text-amber-800">
-            <span className="font-semibold">💡 How to choose:</span> Click the <strong>top half</strong> of a card if you strongly prefer it (💪), 
-            or the <strong>bottom half</strong> if you somewhat prefer it (👍)
+      {/* Tutorial hint for first matchup only */}
+      {quizState.currentMatchup === 0 && (
+        <div className="bg-gray-800/70 backdrop-blur-sm border border-gray-600 rounded-lg p-2 mb-2 md:p-3 md:mb-4 text-center">
+          <p className="text-xs md:text-sm text-gray-300">
+            <span className="font-semibold text-yellow-400">💡 Tip:</span> Top half = <strong className="text-pink-400">strongly</strong> prefer 💪, bottom half = <strong className="text-blue-400">somewhat</strong> prefer 👍
           </p>
         </div>
       )}
 
-      <main className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-4 md:gap-6 items-stretch mb-4">
+      <main className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-2 md:gap-6 items-stretch mb-2 md:mb-4">
         {/* Activity A */}
-        <div className={`activity-card playful-card transition-all duration-300 ${
+        <div className={`bg-gray-800/70 backdrop-blur-sm border border-gray-700 rounded-lg overflow-hidden transition-all duration-300 ${
           isTransitioning ? 'opacity-50 scale-95' : 'opacity-100 scale-100'
         }`}>
           {/* Strong preference zone (top half) */}
           <div 
-            className="activity-choice-zone activity-choice-strong cursor-pointer flex-1 rounded-t-lg hover:bg-coral-100/30 transition-colors duration-200 relative"
+            className="cursor-pointer flex-1 p-4 hover:bg-pink-600/20 transition-colors duration-200 relative"
             onClick={() => !isTransitioning && handleChoice(quizState.currentActivityA!.id, 'strong')}
           >
-            <div className="activity-card-content pb-1">
-              <h3 className="activity-title">{quizState.currentActivityA.title}</h3>
-              <p className="activity-subtitle">{quizState.currentActivityA.subtitle}</p>
+            <div className="pb-1">
+              <h3 className="text-white font-semibold mb-1">{quizState.currentActivityA.title}</h3>
+              <p className="text-gray-300 text-sm">{quizState.currentActivityA.subtitle}</p>
             </div>
-            <div className="absolute top-2 right-2 text-xs text-coral-600 opacity-70 font-medium">
+            <div className="absolute top-2 right-2 text-xs text-pink-400 opacity-60 font-medium">
               💪 strongly
             </div>
           </div>
           
           {/* Divider line */}
-          <div className="border-t-2 border-dashed border-coral-300 mx-4"></div>
+          <div className="border-t border-gray-600 mx-4"></div>
           
           {/* Somewhat preference zone (bottom half) */}
           <div 
-            className="activity-choice-zone activity-choice-somewhat cursor-pointer flex-none py-3 rounded-b-lg hover:bg-blue-100/30 transition-colors duration-200 relative"
+            className="cursor-pointer py-3 px-4 hover:bg-blue-500/20 transition-colors duration-200 relative"
             onClick={() => !isTransitioning && handleChoice(quizState.currentActivityA!.id, 'somewhat')}
           >
             <div className="text-center">
-              <div className="text-xs text-blue-600 font-medium">👍 somewhat prefer</div>
+              <div className="text-xs text-blue-400 font-medium">👍 somewhat prefer</div>
             </div>
-            <div className="absolute top-1 right-2 text-xs text-blue-600 opacity-70 font-medium">
-              👍 somewhat
+            <div className="absolute top-1 right-2 text-xs text-blue-400 opacity-70 font-medium">
+              👍
             </div>
           </div>
         </div>
         
-        <div className="flex items-center justify-center">
-          <span className="vs-separator">or maybe...</span>
+        <div className="flex items-center justify-center md:flex-col">
+          <span className="text-gray-400 md:text-sm text-base">or maybe...</span>
         </div>
         
         {/* Activity B */}
-        <div className={`activity-card playful-card md:mt-0 mt-4 transition-all duration-300 ${
+        <div className={`bg-gray-800/70 backdrop-blur-sm border border-gray-700 rounded-lg overflow-hidden md:mt-0 mt-2 transition-all duration-300 ${
           isTransitioning ? 'opacity-50 scale-95' : 'opacity-100 scale-100'
         }`}>
           {/* Strong preference zone (top half) */}
           <div 
-            className="activity-choice-zone activity-choice-strong cursor-pointer flex-1 rounded-t-lg hover:bg-coral-100/30 transition-colors duration-200 relative"
+            className="cursor-pointer flex-1 p-4 hover:bg-pink-600/20 transition-colors duration-200 relative"
             onClick={() => !isTransitioning && handleChoice(quizState.currentActivityB!.id, 'strong')}
           >
-            <div className="activity-card-content pb-1">
-              <h3 className="activity-title">{quizState.currentActivityB.title}</h3>
-              <p className="activity-subtitle">{quizState.currentActivityB.subtitle}</p>
+            <div className="pb-1">
+              <h3 className="text-white font-semibold mb-1">{quizState.currentActivityB.title}</h3>
+              <p className="text-gray-300 text-sm">{quizState.currentActivityB.subtitle}</p>
             </div>
-            <div className="absolute top-2 right-2 text-xs text-coral-600 opacity-70 font-medium">
+            <div className="absolute top-2 right-2 text-xs text-pink-400 opacity-70 font-medium">
               💪 strongly
             </div>
           </div>
           
           {/* Divider line */}
-          <div className="border-t-2 border-dashed border-coral-300 mx-4"></div>
+          <div className="border-t border-gray-600 mx-4"></div>
           
           {/* Somewhat preference zone (bottom half) */}
           <div 
-            className="activity-choice-zone activity-choice-somewhat cursor-pointer flex-none py-3 rounded-b-lg hover:bg-blue-100/30 transition-colors duration-200 relative"
+            className="cursor-pointer py-3 px-4 hover:bg-blue-500/20 transition-colors duration-200 relative"
             onClick={() => !isTransitioning && handleChoice(quizState.currentActivityB!.id, 'somewhat')}
           >
             <div className="text-center">
-              <div className="text-xs text-blue-600 font-medium">👍 somewhat prefer</div>
+              <div className="text-xs text-blue-400 font-medium">👍 somewhat prefer</div>
             </div>
-            <div className="absolute top-1 right-2 text-xs text-blue-600 opacity-70 font-medium">
-              👍 somewhat
+            <div className="absolute top-1 right-2 text-xs text-blue-400 opacity-70 font-medium">
+              👍 
             </div>
           </div>
         </div>
       </main>
       
-      <div className="button-group my-4 md:my-6">
+      <div className="flex flex-wrap gap-3 justify-center my-2 md:my-6">
         <button 
           onClick={() => handleSpecialChoice(0.5)}
           disabled={isTransitioning}
-          className={`playful-button-secondary transition-all duration-300 ${
+          className={`bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white px-4 py-2 rounded-lg transition-all duration-300 border border-gray-700 hover:border-gray-600 ${
             isTransitioning ? 'opacity-50 cursor-not-allowed' : 'opacity-100'
           }`}
         >
-          hmm, both sound good!
+          🤔 both sound good!
         </button>
         <button 
           onClick={() => handleSpecialChoice(0.5)}
           disabled={isTransitioning}
-          className={`playful-button-tertiary transition-all duration-300 ${
+          className={`bg-gray-700 hover:bg-gray-600 text-gray-400 hover:text-gray-300 px-4 py-2 rounded-lg transition-all duration-300 border border-gray-600 hover:border-gray-500 ${
             isTransitioning ? 'opacity-50 cursor-not-allowed' : 'opacity-100'
           }`}
         >
-          ugh, neither are great.
+          😐 neither appeal to me
         </button>
         {currentUser ? (
           // Logged-in users can stop anytime and save progress
@@ -472,7 +610,7 @@ export default function QuizView({ quizState, setQuizState, onFinishQuiz, curren
             <button 
               onClick={() => handleEndEarly(onFinishQuiz, currentUser, onStopQuiz)}
               disabled={isTransitioning}
-              className={`playful-button-secondary text-sm transition-all duration-300 ${
+              className={`bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white text-sm px-4 py-2 rounded-lg transition-all duration-300 border border-gray-700 hover:border-gray-600 ${
                 isTransitioning ? 'opacity-50 cursor-not-allowed' : 'opacity-100'
               }`}
             >
@@ -482,7 +620,7 @@ export default function QuizView({ quizState, setQuizState, onFinishQuiz, curren
               <button 
                 onClick={onSaveProgress}
                 disabled={isTransitioning}
-                className={`playful-button-tertiary text-sm transition-all duration-300 ${
+                className={`bg-gray-700 hover:bg-gray-600 text-gray-400 hover:text-gray-300 text-sm px-4 py-2 rounded-lg transition-all duration-300 border border-gray-600 hover:border-gray-500 ${
                   isTransitioning ? 'opacity-50 cursor-not-allowed' : 'opacity-100'
                 }`}
               >
@@ -496,7 +634,7 @@ export default function QuizView({ quizState, setQuizState, onFinishQuiz, curren
             <button 
               onClick={() => handleEndEarly(onFinishQuiz, currentUser, onStopQuiz)}
               disabled={isTransitioning}
-              className={`playful-button-secondary text-sm transition-all duration-300 ${
+              className={`bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white text-sm px-4 py-2 rounded-lg transition-all duration-300 border border-gray-700 hover:border-gray-600 ${
                 isTransitioning ? 'opacity-50 cursor-not-allowed' : 'opacity-100'
               }`}
             >
@@ -506,9 +644,14 @@ export default function QuizView({ quizState, setQuizState, onFinishQuiz, curren
         )}
       </div>
       
-      <footer className="mt-4 md:mt-6 text-center">
-        <p className="text-xs text-brown-500">&copy; 2025</p>
+      <footer className="hidden md:block mt-4 md:mt-6 text-center">
+        <p className="text-xs text-gray-500">&copy; 2025</p>
       </footer>
+      
+      {/* Tutorial Overlay */}
+      {showTutorial && (
+        <TutorialOverlay onComplete={handleTutorialComplete} />
+      )}
     </div>
   );
 }

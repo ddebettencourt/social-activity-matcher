@@ -8,43 +8,43 @@ interface StartViewProps {
 
 export default function StartView({ onStartQuiz, currentUser, onBackToSplash }: StartViewProps) {
   return (
-    <div className="view-container max-w-xl w-full text-center playful-card p-6 md:p-10">
-      {currentUser && (
-        <div className="mb-4 p-3 bg-purple-50 rounded-lg border border-purple-200">
-          <p className="text-purple-700 font-medium">👋 Welcome back, {currentUser.username}!</p>
-          <p className="text-purple-600 text-sm">Ready to discover your social preferences?</p>
-        </div>
-      )}
-      
-      <header className="mb-6">
-        <h1>activity picker!</h1>
-        <p className="text-brown-700 text-base md:text-lg">let&apos;s find some fun stuff for you to do!</p>
-      </header>
-      
-      <main className="mb-8">
-        <p className="text-brown-600 mb-6 text-sm md:text-base">
-          pick your faves and we&apos;ll figure out what makes an event super cool for YOU.
-        </p>
-      </main>
-      
-      <footer>
-        <button 
-          onClick={onStartQuiz}
-          className="playful-button-primary mb-4"
-        >
-          let&apos;s go!
-        </button>
+    <div className="w-full flex items-center justify-center px-4 relative">
+      <div className="max-w-lg w-full text-center relative z-10">
+        {currentUser && (
+          <div className="mb-6 p-4 bg-gray-800/70 backdrop-blur-sm rounded-xl border border-gray-700">
+            <p className="text-white font-medium">👋 Hey {currentUser.username}!</p>
+          </div>
+        )}
         
-        <div className="space-y-2">
+        <header className="mb-12">
+          <div className="text-4xl md:text-5xl mb-6">🎯</div>
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-light text-white mb-4 leading-tight">
+            ready to <span className="font-bold bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent">discover</span> your style?
+          </h1>
+          <p className="text-gray-400 text-sm sm:text-base max-w-md mx-auto leading-relaxed">
+            pick your favorites in 1v1 matchups, and we'll learn your preferences
+          </p>
+        </header>
+        
+        <footer className="space-y-6">
           <button 
-            onClick={onBackToSplash}
-            className="playful-button-secondary text-sm px-4 py-2"
+            onClick={onStartQuiz}
+            className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-medium text-lg px-8 py-4 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
           >
-            ← back to home
+            let's go! ✨
           </button>
-          <p className="text-xs text-brown-500">&copy; 2025</p>
-        </div>
-      </footer>
+          
+          <div className="space-y-3">
+            <button 
+              onClick={onBackToSplash}
+              className="w-full bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white text-sm px-6 py-3 rounded-lg transition-all duration-200 border border-gray-700 hover:border-gray-600"
+            >
+              ← back to home
+            </button>
+            
+          </div>
+        </footer>
+      </div>
     </div>
   );
 }
