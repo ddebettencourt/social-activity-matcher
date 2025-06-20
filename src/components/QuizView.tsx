@@ -156,12 +156,6 @@ export default function QuizView({ quizState, setQuizState, onFinishQuiz, curren
 
   // Note: Choice counter is reset immediately when insight is generated, not in useEffect
 
-  useEffect(() => {
-    if (quizState.activityData.length >= 2 && !quizState.currentActivityA && !quizState.currentActivityB) {
-      displayMatchup();
-    }
-  }, [quizState.activityData, quizState.currentActivityA, quizState.currentActivityB, displayMatchup]);
-
   const shuffleArray = <T,>(array: T[]): void => {
     for (let i = array.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -271,6 +265,12 @@ export default function QuizView({ quizState, setQuizState, onFinishQuiz, curren
       };
     });
   }, [quizState.activityData, quizState.recentMatchupHistory, onFinishQuiz]);
+
+  useEffect(() => {
+    if (quizState.activityData.length >= 2 && !quizState.currentActivityA && !quizState.currentActivityB) {
+      displayMatchup();
+    }
+  }, [quizState.activityData, quizState.currentActivityA, quizState.currentActivityB, displayMatchup]);
 
   const handleChoice = (chosenActivityId: number, strength: PreferenceStrength = 'somewhat') => {
     console.log(`handleChoice: User chose activity ID ${chosenActivityId} with strength ${strength}.`);
