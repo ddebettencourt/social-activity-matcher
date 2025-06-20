@@ -62,7 +62,7 @@ export default function ResultsView({ onRetakeQuiz, onClearData, currentUser, on
     } else {
       console.warn("No activity data found to display results");
     }
-  }, [activityData, totalMatchupsProp]);
+  }, [propsActivityData, propsTotalMatchups]);
 
   useEffect(() => {
     loadAndProcessResults();
