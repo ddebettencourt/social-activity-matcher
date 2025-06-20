@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react';
-import { Activity, QuizState, MatchupPrediction, PreferenceStrength, User } from '@/types/quiz';
+import { useEffect, useState, useCallback } from 'react';
+import { Activity, QuizState, MatchupPrediction, PreferenceStrength, User, Insight } from '@/types/quiz';
 import { ABSOLUTE_MAX_MATCHUPS, RECENT_HISTORY_SIZE } from '@/lib/constants';
 import { processChoice } from '@/lib/eloCalculations';
 import { makePrediction, updatePredictionWithResult, calculateAlgorithmStrength } from '@/lib/algorithmStrength';
@@ -31,6 +31,103 @@ const handleEndEarly = (onFinishQuiz: () => void, currentUser: User | null, onSt
   }
 };
 
+// Function to generate insight from user choices
+const generateInsight = async (
+  quizState: QuizState, 
+  setQuizState: React.Dispatch<React.SetStateAction<QuizState>>, 
+  setIsGenerating: (value: boolean) => void,
+  resetChoiceCounter: () => void
+) => {
+  if (setIsGenerating) setIsGenerating(true);
+  
+  try {
+    // Validate we have enough data
+    if (!quizState.activityData || quizState.activityData.length < 10) {
+      console.log('Not enough activity data for insight generation');
+      return;
+    }
+
+    if (quizState.currentMatchup < 6) {
+      console.log('Not enough matchups completed for insight generation');
+      return;
+    }
+
+    // Use the actual choices the user has made!
+    const choices = quizState.actualChoices.filter(choice => choice.chosen !== 'tie'); // Exclude ties
+    
+    if (choices.length < 6) {
+      console.log(`Only ${choices.length} actual choices available for insight generation`);
+      return;
+    }
+
+    // Get past insights text
+    const pastInsights = quizState.insights.map(insight => insight.text);
+
+    console.log('Sending insight request with:', { 
+      choicesCount: choices.length, 
+      pastInsightsCount: pastInsights.length,
+      recentChoices: choices.slice(-3).map(c => `${c.chosen} over ${c.activityA === c.chosen ? c.activityB : c.activityA}`)
+    });
+
+    const response = await fetch('/api/generate-insight', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        choices,
+        pastInsights
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+      console.error('API Error Response:', errorData);
+      throw new Error(`Failed to generate insight: ${errorData.error || response.statusText}`);
+    }
+
+    const { insight } = await response.json();
+
+    // Create new insight object
+    const newInsight: Insight = {
+      id: `insight-${Date.now()}`,
+      text: insight,
+      generatedAt: new Date().toISOString(),
+      matchupNumber: quizState.currentMatchup
+    };
+
+    console.log('Generated insight:', insight);
+    console.log('Setting insight in state:', newInsight);
+
+    // Update quiz state with new insight and reset counter immediately
+    setQuizState(prev => {
+      console.log('Setting currentInsight in state. Previous currentInsight:', prev.currentInsight);
+      const newState = {
+        ...prev,
+        insights: [...prev.insights, newInsight],
+        currentInsight: newInsight
+      };
+      console.log('New state will have currentInsight:', newState.currentInsight);
+      return newState;
+    });
+    
+    // Reset the choice counter immediately when setting insight
+    console.log('Resetting choice counter to 0 for new insight');
+    resetChoiceCounter();
+
+    console.log('Insight should now be visible');
+  } catch (error) {
+    console.error('Error generating insight:', error);
+    // Log more details about the error
+    if (error instanceof Error) {
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
+    }
+  } finally {
+    if (setIsGenerating) setIsGenerating(false);
+  }
+};
+
 export default function QuizView({ quizState, setQuizState, onFinishQuiz, currentUser, onStopQuiz, onSaveProgress }: QuizViewProps) {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [currentPrediction, setCurrentPrediction] = useState<MatchupPrediction | null>(null);
@@ -39,11 +136,31 @@ export default function QuizView({ quizState, setQuizState, onFinishQuiz, curren
     return quizState.currentMatchup === 0;
   });
 
+  // Track choices made since insight was shown
+  const [choicesSinceInsight, setChoicesSinceInsight] = useState(0);
+  // Track if we're currently generating an insight to prevent duplicates
+  const [isGeneratingInsight, setIsGeneratingInsight] = useState(false);
+
+  // Auto-dismiss insights after 3 choices
+  useEffect(() => {
+    console.log('Auto-dismiss check: insight =', quizState.currentInsight?.text, 'choicesSinceInsight =', choicesSinceInsight);
+    if (quizState.currentInsight && choicesSinceInsight >= 3) {
+      console.log('Auto-dismissing insight after 3 choices');
+      setQuizState(prev => ({
+        ...prev,
+        currentInsight: undefined
+      }));
+      setChoicesSinceInsight(0);
+    }
+  }, [choicesSinceInsight, quizState.currentInsight, setQuizState]);
+
+  // Note: Choice counter is reset immediately when insight is generated, not in useEffect
+
   useEffect(() => {
     if (quizState.activityData.length >= 2 && !quizState.currentActivityA && !quizState.currentActivityB) {
       displayMatchup();
     }
-  }, [quizState.activityData]);
+  }, [quizState.activityData, quizState.currentActivityA, quizState.currentActivityB, displayMatchup]);
 
   const shuffleArray = <T,>(array: T[]): void => {
     for (let i = array.length - 1; i > 0; i--) {
@@ -123,7 +240,7 @@ export default function QuizView({ quizState, setQuizState, onFinishQuiz, curren
     return { actA: finalActA, actB: finalActB };
   };
 
-  const displayMatchup = () => {
+  const displayMatchup = useCallback(() => {
     const pair = selectActivitiesForMatchup();
     if (!pair) { 
       console.error("displayMatchup: No pair selected, finishing quiz.");
@@ -153,7 +270,7 @@ export default function QuizView({ quizState, setQuizState, onFinishQuiz, curren
         recentMatchupHistory: newHistory
       };
     });
-  };
+  }, [quizState.activityData, quizState.recentMatchupHistory, onFinishQuiz]);
 
   const handleChoice = (chosenActivityId: number, strength: PreferenceStrength = 'somewhat') => {
     console.log(`handleChoice: User chose activity ID ${chosenActivityId} with strength ${strength}.`);
@@ -161,6 +278,13 @@ export default function QuizView({ quizState, setQuizState, onFinishQuiz, curren
     
     // Start transition animation
     setIsTransitioning(true);
+    
+    // Increment choice counter for insight dismissal
+    setChoicesSinceInsight(prev => {
+      const newCount = prev + 1;
+      console.log('Incrementing choice counter from', prev, 'to', newCount);
+      return newCount;
+    });
     
     const outcomeForDisplayedA = quizState.currentActivityA.id === chosenActivityId ? 1 : 0;
     const updatedActivityData = processChoice(
@@ -172,6 +296,15 @@ export default function QuizView({ quizState, setQuizState, onFinishQuiz, curren
     );
     
     const newMatchupCount = quizState.currentMatchup + 1;
+    
+    // Track the actual choice made for insights
+    const actualChoice = {
+      activityA: quizState.currentActivityA.title,
+      activityB: quizState.currentActivityB.title,
+      chosen: chosenActivityId === quizState.currentActivityA.id ? quizState.currentActivityA.title : quizState.currentActivityB.title,
+      strength,
+      matchupNumber: newMatchupCount
+    };
     
     // Update prediction with actual result and calculate algorithm strength
     const updatedPredictions = [...quizState.algorithmStrength.predictionHistory];
@@ -187,8 +320,29 @@ export default function QuizView({ quizState, setQuizState, onFinishQuiz, curren
       ...prev,
       activityData: updatedActivityData,
       currentMatchup: newMatchupCount,
-      algorithmStrength: newAlgorithmStrength
+      algorithmStrength: newAlgorithmStrength,
+      actualChoices: [...prev.actualChoices, actualChoice]
     }));
+
+    // Check for insight generation (25% chance after 6+ choices)
+    // Only generate if we don't already have a current insight showing and not currently generating
+    if (newMatchupCount >= 6 && Math.random() < 0.25 && !quizState.currentInsight && !isGeneratingInsight) {
+      // Use the updated state that includes the new actualChoice
+      const updatedQuizStateForInsight = {
+        ...quizState,
+        currentMatchup: newMatchupCount,
+        algorithmStrength: newAlgorithmStrength,
+        activityData: updatedActivityData,
+        actualChoices: [...quizState.actualChoices, actualChoice]
+      };
+      
+      generateInsight(
+        updatedQuizStateForInsight,
+        setQuizState,
+        setIsGeneratingInsight,
+        () => setChoicesSinceInsight(0)
+      );
+    }
 
     // Check if quiz should end based on algorithm confidence or max limit
     // For logged-in users, never force completion based on algorithm readiness
@@ -214,17 +368,21 @@ export default function QuizView({ quizState, setQuizState, onFinishQuiz, curren
           setCurrentPrediction(prediction);
 
           setQuizState(prev => {
+            console.log('Setting up next matchup in handleChoice. Current insight before:', prev.currentInsight);
             const newHistory = [...prev.recentMatchupHistory, pair.actA.id, pair.actB.id];
             if (newHistory.length > RECENT_HISTORY_SIZE) {
               newHistory.splice(0, newHistory.length - RECENT_HISTORY_SIZE);
             }
 
-            return {
+            const newState = {
               ...prev,
               currentActivityA: pair.actA,
               currentActivityB: pair.actB,
               recentMatchupHistory: newHistory
+              // Preserve currentInsight and other fields automatically with ...prev
             };
+            console.log('Next matchup state will have insight:', newState.currentInsight);
+            return newState;
           });
         }
         setIsTransitioning(false);
@@ -248,6 +406,15 @@ export default function QuizView({ quizState, setQuizState, onFinishQuiz, curren
     
     const newMatchupCount = quizState.currentMatchup + 1;
     
+    // Track the special choice (tie)
+    const actualChoice = {
+      activityA: quizState.currentActivityA.title,
+      activityB: quizState.currentActivityB.title,
+      chosen: 'tie', // Special indicator for ties
+      strength: 'tie' as const,
+      matchupNumber: newMatchupCount
+    };
+    
     // For special choices (ties), we don't update prediction accuracy since there's no clear winner
     // But we still calculate algorithm strength based on existing predictions
     const newAlgorithmStrength = calculateAlgorithmStrength(
@@ -259,7 +426,8 @@ export default function QuizView({ quizState, setQuizState, onFinishQuiz, curren
       ...prev,
       activityData: updatedActivityData,
       currentMatchup: newMatchupCount,
-      algorithmStrength: newAlgorithmStrength
+      algorithmStrength: newAlgorithmStrength,
+      actualChoices: [...prev.actualChoices, actualChoice]
     }));
 
     // For logged-in users, never force completion based on algorithm readiness
@@ -292,6 +460,7 @@ export default function QuizView({ quizState, setQuizState, onFinishQuiz, curren
               currentActivityA: pair.actA,
               currentActivityB: pair.actB,
               recentMatchupHistory: newHistory
+              // Preserve currentInsight and other fields automatically with ...prev
             };
           });
         }
@@ -308,6 +477,22 @@ export default function QuizView({ quizState, setQuizState, onFinishQuiz, curren
   // Get algorithm status for combined display
   const getAlgorithmStatus = () => {
     const isTrackingStarted = quizState.currentMatchup >= quizState.minMatchups;
+    
+    console.log('getAlgorithmStatus: currentInsight =', quizState.currentInsight);
+    
+    // If there's a current insight, display it
+    if (quizState.currentInsight) {
+      console.log('Displaying insight:', quizState.currentInsight.text);
+      return {
+        emoji: "💡",
+        title: "Insight:",
+        subtitle: quizState.currentInsight.text,
+        color: "text-blue-400",
+        bgColor: "bg-blue-50",
+        borderColor: "border-blue-200",
+        isInsight: true
+      };
+    }
     
     if (!isTrackingStarted) {
       return {

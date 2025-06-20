@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import { Activity, User } from '@/types/quiz';
+import { Activity, User, Insight } from '@/types/quiz';
 
 // Test Supabase connection
 export async function testConnection(): Promise<boolean> {
@@ -140,7 +140,8 @@ export async function updateUserLastActive(username: string): Promise<void> {
 export async function saveQuizResults(
   username: string, 
   activityData: Activity[], 
-  totalMatchups: number
+  totalMatchups: number,
+  insights: Insight[] = []
 ): Promise<boolean> {
   try {
     console.log('Saving quiz results for:', username);
@@ -193,6 +194,7 @@ export async function saveQuizResults(
         user_id: userData.id,
         activity_data: completeActivityData,
         total_matchups: totalMatchups,
+        insights: insights,
         completed_at: new Date().toISOString()
       }]);
 
@@ -211,7 +213,8 @@ export async function saveQuizResults(
 
 export async function getQuizResults(username: string): Promise<{ 
   activityData: Activity[], 
-  totalMatchups: number
+  totalMatchups: number,
+  insights: Insight[]
 } | null> {
   try {
     console.log('Getting quiz results for:', username);
@@ -231,7 +234,7 @@ export async function getQuizResults(username: string): Promise<{
     // Get their latest quiz results
     const { data, error } = await supabase
       .from('quiz_results')
-      .select('activity_data, total_matchups')
+      .select('activity_data, total_matchups, insights')
       .eq('user_id', userData.id)
       .order('completed_at', { ascending: false })
       .single();
@@ -245,7 +248,8 @@ export async function getQuizResults(username: string): Promise<{
 
     return {
       activityData: data.activity_data,
-      totalMatchups: data.total_matchups
+      totalMatchups: data.total_matchups,
+      insights: data.insights || []
     };
   } catch (error) {
     console.error('Error getting quiz results:', error);
@@ -321,6 +325,7 @@ export async function getQualifiedUsersForEventAnalysis(minMatchups: number = 10
   username: string;
   activityData: Activity[];
   totalMatchups: number;
+  insights: Insight[];
 }[]> {
   try {
     console.log('Getting qualified users for event analysis with min matchups:', minMatchups);
@@ -341,13 +346,14 @@ export async function getQualifiedUsersForEventAnalysis(minMatchups: number = 10
       username: string;
       activityData: Activity[];
       totalMatchups: number;
+      insights: Insight[];
     }[] = [];
 
     // Check each user's quiz data
     for (const user of users) {
       const { data: quizData, error: quizError } = await supabase
         .from('quiz_results')
-        .select('activity_data, total_matchups')
+        .select('activity_data, total_matchups, insights')
         .eq('user_id', user.id)
         .order('completed_at', { ascending: false })
         .single();
@@ -366,7 +372,8 @@ export async function getQualifiedUsersForEventAnalysis(minMatchups: number = 10
           qualifiedUsers.push({
             username: user.username,
             activityData: quizData.activity_data,
-            totalMatchups: quizData.total_matchups
+            totalMatchups: quizData.total_matchups,
+            insights: quizData.insights || []
           });
         }
       }
@@ -388,6 +395,7 @@ export async function getAllUsersWithProfiles(): Promise<{
   activityData: Activity[];
   totalMatchups: number;
   hasQuizData: boolean;
+  insights: Insight[];
 }[]> {
   try {
     console.log('Getting all users with complete profile data');
@@ -412,13 +420,14 @@ export async function getAllUsersWithProfiles(): Promise<{
       activityData: Activity[];
       totalMatchups: number;
       hasQuizData: boolean;
+      insights: Insight[];
     }[] = [];
 
     // Get quiz data for each user
     for (const user of users) {
       const { data: quizData, error: quizError } = await supabase
         .from('quiz_results')
-        .select('activity_data, total_matchups')
+        .select('activity_data, total_matchups, insights')
         .eq('user_id', user.id)
         .order('completed_at', { ascending: false })
         .single();
@@ -431,7 +440,8 @@ export async function getAllUsersWithProfiles(): Promise<{
           lastActive: user.last_active,
           activityData: [],
           totalMatchups: 0,
-          hasQuizData: false
+          hasQuizData: false,
+          insights: []
         });
       } else {
         // User has quiz data
@@ -441,7 +451,8 @@ export async function getAllUsersWithProfiles(): Promise<{
           lastActive: user.last_active,
           activityData: quizData.activity_data,
           totalMatchups: quizData.total_matchups,
-          hasQuizData: true
+          hasQuizData: true,
+          insights: quizData.insights || []
         });
       }
     }

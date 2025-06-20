@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Activity, PreferenceDriver, TagScore, User } from '@/types/quiz';
 import { calculatePreferenceDrivers } from '@/lib/eloCalculations';
 import { personaTraitMap } from '@/lib/constants';
@@ -28,9 +28,9 @@ export default function ResultsView({ onRetakeQuiz, onClearData, currentUser, on
 
   useEffect(() => {
     loadAndProcessResults();
-  }, []);
+  }, [loadAndProcessResults]);
 
-  const loadAndProcessResults = () => {
+  const loadAndProcessResults = useCallback(() => {
     console.log("loadAndProcessResults: Loading results...");
     
     // Use props data if available (for logged-in users), otherwise load from localStorage (anonymous users)
@@ -66,7 +66,7 @@ export default function ResultsView({ onRetakeQuiz, onClearData, currentUser, on
     } else {
       console.warn("No activity data found to display results");
     }
-  };
+  }, [activityData, totalMatchupsProp]);
 
   const generatePersonaName = (drivers: PreferenceDriver[]) => {
     console.log("generatePersonaName: Generating persona...");

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { QuizState, User } from '@/types/quiz';
 import { loadActivities } from '@/lib/csvParser';
 import { initialActivitiesData, MIN_MATCHUPS_FOR_ALGORITHM, TARGET_ALGORITHM_STRENGTH } from '@/lib/constants';
@@ -33,7 +33,10 @@ export default function QuizApp() {
       predictionHistory: []
     },
     minMatchups: MIN_MATCHUPS_FOR_ALGORITHM,
-    targetStrength: TARGET_ALGORITHM_STRENGTH
+    targetStrength: TARGET_ALGORITHM_STRENGTH,
+    insights: [],
+    currentInsight: undefined,
+    actualChoices: []
   });
 
   useEffect(() => {
@@ -46,7 +49,7 @@ export default function QuizApp() {
     if (currentView === 'start' && !currentUser && quizState.activityData.length === 0) {
       initializeQuizState();
     }
-  }, [currentView, currentUser]);
+  }, [currentView, currentUser, quizState.activityData.length, initializeQuizState]);
 
   // User Management Functions
   const loginUser = async (username: string) => {
@@ -70,7 +73,8 @@ export default function QuizApp() {
               ...prev,
               activityData: quizData.activityData,
               currentMatchup: quizData.totalMatchups,
-              isQuizComplete: true
+              isQuizComplete: true,
+              insights: quizData.insights || []
             }));
             setCurrentView('profile');
           } else {
@@ -98,7 +102,8 @@ export default function QuizApp() {
                   ...prev,
                   activityData: quizData.activityData,
                   currentMatchup: quizData.totalMatchups,
-                  isQuizComplete: true
+                  isQuizComplete: true,
+                  insights: quizData.insights || []
                 }));
                 setCurrentUser(updatedUser);
                 setCurrentView('profile');
@@ -127,7 +132,7 @@ export default function QuizApp() {
     setCurrentView('start');
   };
 
-  const initializeQuizState = async () => {
+  const initializeQuizState = useCallback(async () => {
     console.log("initializeQuizState: Initializing quiz data and ELOs...");
     
     // If user is logged in, their data should already be loaded from loginUser()
@@ -186,11 +191,14 @@ export default function QuizApp() {
         predictionHistory: []
       },
       minMatchups: MIN_MATCHUPS_FOR_ALGORITHM,
-      targetStrength: TARGET_ALGORITHM_STRENGTH
+      targetStrength: TARGET_ALGORITHM_STRENGTH,
+      insights: [],
+      currentInsight: undefined,
+      actualChoices: []
     });
 
     console.log(`initializeQuizState: ${loadedActivities.length} activities initialized.`);
-  };
+  }, [currentUser]);
 
 
   const startNewQuiz = async () => {
@@ -222,7 +230,8 @@ export default function QuizApp() {
         const success = await saveQuizResults(
           currentUser.username, 
           quizState.activityData, 
-          quizState.currentMatchup
+          quizState.currentMatchup,
+          quizState.insights || []
         );
         
         if (success) {
@@ -267,7 +276,7 @@ export default function QuizApp() {
       }
       
       // Save quiz results
-      const success = await saveQuizResults(username, quizState.activityData, quizState.currentMatchup);
+      const success = await saveQuizResults(username, quizState.activityData, quizState.currentMatchup, quizState.insights || []);
       if (!success) {
         alert('Failed to save quiz results. Please try again.');
         setIsLoading(false);
@@ -376,7 +385,8 @@ export default function QuizApp() {
       const success = await saveQuizResults(
         currentUser.username, 
         quizState.activityData, 
-        quizState.currentMatchup
+        quizState.currentMatchup,
+        quizState.insights || []
       );
       
       if (success) {

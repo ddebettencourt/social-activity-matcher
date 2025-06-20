@@ -77,6 +77,13 @@ export interface AlgorithmStrength {
 
 export type PreferenceStrength = 'strong' | 'somewhat' | 'tie';
 
+export interface Insight {
+  id: string;
+  text: string;
+  generatedAt: string;
+  matchupNumber: number;
+}
+
 export interface User {
   username: string;
   createdAt: string;
@@ -89,6 +96,15 @@ export interface UserProfile {
   activityData?: Activity[];
   totalMatchups?: number;
   quizCompletedAt?: string;
+  insights?: Insight[];
+}
+
+export interface ActualChoice {
+  activityA: string;
+  activityB: string;
+  chosen: string;
+  strength: PreferenceStrength;
+  matchupNumber: number;
 }
 
 export interface QuizState {
@@ -101,4 +117,7 @@ export interface QuizState {
   algorithmStrength: AlgorithmStrength;
   minMatchups: number; // minimum before algorithm strength kicks in
   targetStrength: number; // strength score needed to complete quiz
+  insights: Insight[];
+  currentInsight?: Insight; // Currently displayed insight
+  actualChoices: ActualChoice[]; // Track real user choices for insights
 }
