@@ -44,7 +44,7 @@ export default function TutorialOverlay({ onComplete }: TutorialOverlayProps) {
     {
       title: chosenSnakes ? "Great choice! 🐍😱" : "Great choice! 🎉",
       subtitle: chosenSnakes 
-        ? "We can learn anyone's preferences, I guess. Let me explain how this works:"
+        ? "We can learn anyone's preferences, even if they're... a little out there. Let me explain how this works:"
         : "Now you know how to make choices. Here's what the interface does:",
       showCards: false
     },

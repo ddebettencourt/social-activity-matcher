@@ -401,7 +401,7 @@ export default function QuizApp() {
   };
 
   return (
-    <div className={`flex items-center justify-center min-h-screen ${['splash', 'start', 'quiz'].includes(currentView) ? 'bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900' : ''}`}>
+    <div className={`flex items-center justify-center min-h-screen ${['splash', 'start', 'quiz', 'profile', 'results', 'customEvent', 'profiles'].includes(currentView) ? 'bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900' : ''}`}>
       {currentView === 'splash' && (
         <SplashView 
           onStartQuiz={startQuizFromSplash}

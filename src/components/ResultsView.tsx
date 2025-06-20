@@ -274,20 +274,20 @@ export default function ResultsView({ onRetakeQuiz, onClearData, currentUser, on
   const personalityInsights = getPersonalityInsights();
 
   return (
-    <div className="view-container container mx-auto max-w-4xl py-6 md:py-8 px-2 md:px-4">
+    <div className="w-full max-w-4xl mx-auto py-6 md:py-8 px-4">
       <header className="text-center mb-6 md:mb-8">
-        <h1>your activity personality revealed!</h1>
-        <p className="text-brown-700 text-base md:text-lg">here&apos;s what we discovered about you</p>
+        <h1 className="text-3xl md:text-4xl font-light text-white mb-4">your activity personality revealed!</h1>
+        <p className="text-gray-400 text-base md:text-lg">here&apos;s what we discovered about you</p>
       </header>
       
       <main className="space-y-6 md:space-y-8">
         {/* Big Personality Section */}
-        <section className="playful-card p-6 md:p-8 text-center bg-gradient-to-br from-purple-50 to-blue-50">
+        <section className="bg-gray-800/70 backdrop-blur-sm border border-gray-700 rounded-xl p-6 md:p-8 text-center">
           <div className="text-6xl mb-4">🎭</div>
-          <h2 className="text-3xl md:text-4xl font-bold text-purple-700 mb-4">{personaName}</h2>
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">{personaName}</h2>
           <div className="space-y-3">
             {personalityInsights.map((insight, index) => (
-              <p key={index} className="text-lg text-purple-600 italic">
+              <p key={index} className="text-lg text-gray-300 italic">
                 ✨ {insight}
               </p>
             ))}
@@ -296,19 +296,19 @@ export default function ResultsView({ onRetakeQuiz, onClearData, currentUser, on
 
         {/* Top Tags Section */}
         {topTags.length > 0 && (
-          <section className="playful-card p-4 md:p-6 bg-gradient-to-br from-amber-50 to-orange-50">
+          <section className="bg-gray-800/70 backdrop-blur-sm border border-gray-700 rounded-xl p-4 md:p-6">
             <div className="flex items-center gap-3 mb-4">
               <span className="text-3xl">🏷️</span>
-              <h2 className="text-2xl font-bold text-amber-700">Your favorite types</h2>
+              <h2 className="text-2xl font-bold text-white">Your favorite types</h2>
             </div>
-            <p className="text-amber-600 text-sm mb-4 italic">
+            <p className="text-gray-400 text-sm mb-4 italic">
               These activity types really resonate with you (statistically speaking)...
             </p>
             <div className="flex flex-wrap gap-2">
               {topTags.slice(0, 8).map((tagScore, index) => (
-                <div key={tagScore.tag} className="bg-white/70 rounded-full px-4 py-2 border border-amber-200">
-                  <span className="text-amber-800 font-medium">#{index + 1} {tagScore.tag}</span>
-                  <span className="text-xs text-amber-600 ml-2">
+                <div key={tagScore.tag} className="bg-gray-700/70 rounded-full px-4 py-2 border border-gray-600">
+                  <span className="text-white font-medium">#{index + 1} {tagScore.tag}</span>
+                  <span className="text-xs text-gray-400 ml-2">
                     ({tagScore.activityCount} activities, avg ELO {tagScore.averageElo})
                   </span>
                 </div>
@@ -319,19 +319,19 @@ export default function ResultsView({ onRetakeQuiz, onClearData, currentUser, on
 
         {/* Worst Tags Section */}
         {worstTags.length > 0 && (
-          <section className="playful-card p-4 md:p-6 bg-gradient-to-br from-gray-50 to-slate-50">
+          <section className="bg-gray-800/70 backdrop-blur-sm border border-gray-700 rounded-xl p-4 md:p-6">
             <div className="flex items-center gap-3 mb-4">
               <span className="text-3xl">🚯</span>
-              <h2 className="text-2xl font-bold text-gray-700">Not really your vibe</h2>
+              <h2 className="text-2xl font-bold text-white">Not really your vibe</h2>
             </div>
-            <p className="text-gray-600 text-sm mb-4 italic">
+            <p className="text-gray-400 text-sm mb-4 italic">
               These activity types consistently rank below your average...
             </p>
             <div className="flex flex-wrap gap-2">
               {worstTags.slice(0, 6).map((tagScore) => (
-                <div key={tagScore.tag} className="bg-white/70 rounded-full px-4 py-2 border border-gray-200">
-                  <span className="text-gray-800 font-medium">{tagScore.tag}</span>
-                  <span className="text-xs text-gray-600 ml-2">
+                <div key={tagScore.tag} className="bg-gray-700/70 rounded-full px-4 py-2 border border-gray-600">
+                  <span className="text-gray-300 font-medium">{tagScore.tag}</span>
+                  <span className="text-xs text-gray-500 ml-2">
                     ({tagScore.activityCount} activities, avg ELO {tagScore.averageElo})
                   </span>
                 </div>
@@ -341,25 +341,25 @@ export default function ResultsView({ onRetakeQuiz, onClearData, currentUser, on
         )}
 
         {/* Perfect For You Section */}
-        <section className="playful-card p-4 md:p-6 bg-gradient-to-br from-emerald-50 to-green-50">
+        <section className="bg-gray-800/70 backdrop-blur-sm border border-gray-700 rounded-xl p-4 md:p-6">
           <div className="flex items-center gap-3 mb-4">
             <span className="text-3xl">🎯</span>
-            <h2 className="text-2xl font-bold text-emerald-700">Perfect for you!</h2>
+            <h2 className="text-2xl font-bold text-white">Perfect for you!</h2>
           </div>
           <div className="space-y-3">
             {topActivities.slice(0, 5).map((activity, index) => (
-              <div key={activity.id} className="bg-white/70 rounded-lg p-4 border-l-4 border-emerald-400">
+              <div key={activity.id} className="bg-gray-700/70 rounded-lg p-4 border-l-4 border-emerald-400">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <h3 className="font-bold text-emerald-800 text-lg">{activity.title}</h3>
-                    <p className="text-emerald-600 text-sm mb-2">{activity.subtitle}</p>
-                    <p className="text-xs text-emerald-700 italic">
+                    <h3 className="font-bold text-white text-lg">{activity.title}</h3>
+                    <p className="text-gray-300 text-sm mb-2">{activity.subtitle}</p>
+                    <p className="text-xs text-emerald-400 italic">
                       Why: {getActivityRecommendationReason(activity, true)}
                     </p>
                   </div>
                   <div className="text-right">
-                    <div className="text-xs text-emerald-600">#{index + 1}</div>
-                    <div className="text-xs font-mono text-emerald-500">ELO {activity.elo}</div>
+                    <div className="text-xs text-gray-400">#{index + 1}</div>
+                    <div className="text-xs font-mono text-emerald-400">ELO {activity.elo}</div>
                   </div>
                 </div>
               </div>
@@ -368,26 +368,26 @@ export default function ResultsView({ onRetakeQuiz, onClearData, currentUser, on
         </section>
 
         {/* Probably Not Your Thing Section */}
-        <section className="playful-card p-4 md:p-6 bg-gradient-to-br from-red-50 to-pink-50">
+        <section className="bg-gray-800/70 backdrop-blur-sm border border-gray-700 rounded-xl p-4 md:p-6">
           <div className="flex items-center gap-3 mb-4">
             <span className="text-3xl">🚫</span>
-            <h2 className="text-2xl font-bold text-red-700">Probably not your thing</h2>
+            <h2 className="text-2xl font-bold text-white">Probably not your thing</h2>
           </div>
-          <p className="text-red-600 text-sm mb-4 italic">
+          <p className="text-gray-400 text-sm mb-4 italic">
             Based on your choices, you might want to skip these...
           </p>
           <div className="space-y-3">
             {bottomActivities.slice(0, 4).map((activity) => (
-              <div key={activity.id} className="bg-white/70 rounded-lg p-4 border-l-4 border-red-400">
+              <div key={activity.id} className="bg-gray-700/70 rounded-lg p-4 border-l-4 border-red-400">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <h3 className="font-bold text-red-800">{activity.title}</h3>
-                    <p className="text-red-600 text-sm mb-2">{activity.subtitle}</p>
-                    <p className="text-xs text-red-700 italic">
+                    <h3 className="font-bold text-white">{activity.title}</h3>
+                    <p className="text-gray-300 text-sm mb-2">{activity.subtitle}</p>
+                    <p className="text-xs text-red-400 italic">
                       Why not: {getActivityRecommendationReason(activity, false)}
                     </p>
                   </div>
-                  <div className="text-xs font-mono text-red-500">ELO {activity.elo}</div>
+                  <div className="text-xs font-mono text-red-400">ELO {activity.elo}</div>
                 </div>
               </div>
             ))}
@@ -395,20 +395,20 @@ export default function ResultsView({ onRetakeQuiz, onClearData, currentUser, on
         </section>
 
         {/* Expandable Technical Details */}
-        <details className="playful-card p-4 md:p-6">
-          <summary className="cursor-pointer text-lg font-semibold text-brown-700 hover:text-brown-800">
+        <details className="bg-gray-800/70 backdrop-blur-sm border border-gray-700 rounded-xl p-4 md:p-6">
+          <summary className="cursor-pointer text-lg font-semibold text-white hover:text-gray-300">
             🤓 Show me the nerdy details
           </summary>
           <div className="mt-4 space-y-4">
             <div>
-              <h3 className="font-semibold text-brown-700 mb-2">Preference Analysis:</h3>
+              <h3 className="font-semibold text-white mb-2">Preference Analysis:</h3>
               <div className="space-y-1">
                 {preferenceDrivers.map((driver, driverIndex) => {
                   const corrDisplay = isNaN(driver.correlation) ? "N/A" : driver.correlation.toFixed(2);
                   const interpretation = getPreferenceInterpretation(driver);
                   
                   return (
-                    <div key={driverIndex} className="text-xs text-brown-600 p-2 bg-brown-50 rounded">
+                    <div key={driverIndex} className="text-xs text-gray-300 p-2 bg-gray-700/70 rounded">
                       <strong>{driver.dimension}:</strong>{' '}
                       <span dangerouslySetInnerHTML={{ __html: interpretation }} />
                       {' '}(Correlation: {corrDisplay})
@@ -419,20 +419,20 @@ export default function ResultsView({ onRetakeQuiz, onClearData, currentUser, on
             </div>
             
             <div>
-              <h3 className="font-semibold text-brown-700 mb-2">Complete Rankings:</h3>
-              <div className="scrollable-list-container max-h-40">
+              <h3 className="font-semibold text-white mb-2">Complete Rankings:</h3>
+              <div className="max-h-40 overflow-y-auto bg-gray-700/70 rounded p-2">
                 <ul>
                   {sortedActivities.map((activity, index) => (
-                    <li key={activity.id} className="flex justify-between text-xs py-1">
+                    <li key={activity.id} className="flex justify-between text-xs py-1 text-gray-300">
                       <span>{index + 1}. {activity.title}</span>
-                      <span className="font-mono text-brown-500">ELO {activity.elo}</span>
+                      <span className="font-mono text-gray-400">ELO {activity.elo}</span>
                     </li>
                   ))}
                 </ul>
               </div>
             </div>
             
-            <div className="text-xs text-brown-500">
+            <div className="text-xs text-gray-400">
               Quiz completed with {totalMatchups} choices
             </div>
           </div>
@@ -440,15 +440,15 @@ export default function ResultsView({ onRetakeQuiz, onClearData, currentUser, on
 
         {/* Profile Creation Section */}
         {!currentUser && (
-          <section className="playful-card p-4 md:p-6 bg-gradient-to-br from-blue-50 to-indigo-50 mt-6">
+          <section className="bg-gray-800/70 backdrop-blur-sm border border-gray-700 rounded-xl p-4 md:p-6 mt-6">
             <div className="text-center">
-              <h3 className="text-xl font-bold text-blue-700 mb-3">💾 Save Your Results!</h3>
-              <p className="text-blue-600 mb-4">
+              <h3 className="text-xl font-bold text-white mb-3">💾 Save Your Results!</h3>
+              <p className="text-gray-300 mb-4">
                 Create a profile to save your preferences and never lose your personalized recommendations.
               </p>
               <button 
                 onClick={() => setShowCreateProfile(true)}
-                className="playful-button-primary"
+                className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-medium px-6 py-3 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl"
               >
                 📝 create profile
               </button>
@@ -458,12 +458,12 @@ export default function ResultsView({ onRetakeQuiz, onClearData, currentUser, on
 
         {/* User Info Section */}
         {currentUser && (
-          <section className="playful-card p-4 bg-green-50 border border-green-200 mt-6">
+          <section className="bg-gray-800/70 backdrop-blur-sm border border-emerald-600 rounded-xl p-4 mt-6">
             <div className="text-center">
-              <p className="text-green-700">
+              <p className="text-emerald-400">
                 ✅ Saved to profile: <strong>{currentUser.username}</strong>
               </p>
-              <p className="text-green-600 text-sm">Your results are automatically saved!</p>
+              <p className="text-emerald-300 text-sm">Your results are automatically saved!</p>
             </div>
           </section>
         )}
@@ -473,13 +473,13 @@ export default function ResultsView({ onRetakeQuiz, onClearData, currentUser, on
             <div className="flex flex-wrap gap-3 justify-center">
               <button 
                 onClick={onRetakeQuiz}
-                className="playful-button-primary text-base"
+                className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-medium text-base px-6 py-3 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl"
               >
                 🔄 take it again!
               </button>
               <button 
                 onClick={onClearData}
-                className="playful-button-secondary text-base"
+                className="bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white text-base px-6 py-3 rounded-lg transition-all duration-200 border border-gray-700 hover:border-gray-600"
               >
                 🗑️ start fresh
               </button>
@@ -488,14 +488,14 @@ export default function ResultsView({ onRetakeQuiz, onClearData, currentUser, on
               {onBackToProfile && (
                 <button 
                   onClick={onBackToProfile}
-                  className="playful-button-secondary text-sm px-4 py-2"
+                  className="bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white text-sm px-4 py-2 rounded-lg transition-all duration-200 border border-gray-700 hover:border-gray-600"
                 >
                   👤 back to profile
                 </button>
               )}
               <button 
                 onClick={onBackToSplash}
-                className="playful-button-secondary text-sm px-4 py-2"
+                className="bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white text-sm px-4 py-2 rounded-lg transition-all duration-200 border border-gray-700 hover:border-gray-600"
               >
                 ← back to home
               </button>
@@ -506,12 +506,12 @@ export default function ResultsView({ onRetakeQuiz, onClearData, currentUser, on
       
       {/* Profile Creation Modal */}
       {showCreateProfile && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full playful-card">
-            <h2 className="text-2xl font-bold text-center mb-4 text-blue-700">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-gray-900 border border-gray-700 rounded-xl p-6 max-w-md w-full shadow-2xl">
+            <h2 className="text-2xl font-bold text-center mb-4 text-white">
               💾 Create Your Profile
             </h2>
-            <p className="text-gray-600 text-center mb-6">
+            <p className="text-gray-400 text-center mb-6">
               Choose a username to save your quiz results and preferences.
             </p>
             
@@ -524,7 +524,7 @@ export default function ResultsView({ onRetakeQuiz, onClearData, currentUser, on
               }
             }} className="space-y-4">
               <div>
-                <label htmlFor="new-username" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="new-username" className="block text-sm font-medium text-gray-300 mb-2">
                   Choose a username
                 </label>
                 <input
@@ -532,7 +532,7 @@ export default function ResultsView({ onRetakeQuiz, onClearData, currentUser, on
                   id="new-username"
                   value={newUsername}
                   onChange={(e) => setNewUsername(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-3 bg-gray-800 border border-gray-600 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent placeholder-gray-400"
                   placeholder="your username"
                   autoFocus
                 />
@@ -545,13 +545,13 @@ export default function ResultsView({ onRetakeQuiz, onClearData, currentUser, on
                     setShowCreateProfile(false);
                     setNewUsername('');
                   }}
-                  className="flex-1 playful-button-secondary py-2"
+                  className="flex-1 bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white py-2 rounded-lg transition-all duration-200 border border-gray-600 hover:border-gray-500"
                 >
                   cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 playful-button-primary py-2"
+                  className="flex-1 bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white py-2 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50"
                   disabled={!newUsername.trim()}
                 >
                   create profile
@@ -562,7 +562,7 @@ export default function ResultsView({ onRetakeQuiz, onClearData, currentUser, on
         </div>
       )}
       
-      <p className="text-xs text-brown-500 mt-6 text-center">
+      <p className="text-xs text-gray-500 mt-6 text-center">
         &copy; 2025
       </p>
     </div>

@@ -139,36 +139,36 @@ export default function ProfileView({
   const progress = getQuizProgress();
 
   return (
-    <div className="view-container container mx-auto max-w-4xl py-6 md:py-8 px-2 md:px-4">
+    <div className="w-full max-w-4xl mx-auto py-6 md:py-8 px-4">
       <header className="text-center mb-6">
-        <h1 className="text-3xl md:text-4xl font-bold text-purple-700 mb-2">
+        <h1 className="text-3xl md:text-4xl font-light text-white mb-2">
           👋 Welcome back, {currentUser.username}!
         </h1>
-        <p className="text-brown-700 text-lg">here&apos;s your social activity profile</p>
+        <p className="text-gray-400 text-lg">here&apos;s your social activity profile</p>
       </header>
 
       <main className="space-y-6">
         {/* Persona Summary */}
-        <section className="playful-card p-6 bg-gradient-to-br from-purple-50 to-blue-50 text-center">
+        <section className="bg-gray-800/70 backdrop-blur-sm border border-gray-700 rounded-xl p-6 text-center">
           <div className="text-5xl mb-3">🎭</div>
-          <h2 className="text-2xl md:text-3xl font-bold text-purple-700 mb-3">{personaName}</h2>
-          <p className="text-purple-600 text-lg mb-4">
+          <h2 className="text-2xl md:text-3xl font-bold text-white mb-3">{personaName}</h2>
+          <p className="text-gray-300 text-lg mb-4">
             Based on {progress.matchups} choices across {progress.activitiesTested} activities
           </p>
           
           {/* Quiz Progress */}
-          <div className="bg-white/70 rounded-lg p-4 mb-4">
+          <div className="bg-gray-700/70 rounded-lg p-4 mb-4">
             <div className="flex justify-between items-center mb-2">
-              <span className="text-sm font-medium text-purple-700">Activity Coverage</span>
-              <span className="text-sm text-purple-600">{progress.coverage}%</span>
+              <span className="text-sm font-medium text-white">Activity Coverage</span>
+              <span className="text-sm text-gray-300">{progress.coverage}%</span>
             </div>
-            <div className="w-full bg-purple-200 rounded-full h-3">
+            <div className="w-full bg-gray-600 rounded-full h-3">
               <div 
-                className="bg-gradient-to-r from-purple-400 to-purple-500 h-3 rounded-full transition-all duration-300"
+                className="bg-gradient-to-r from-pink-500 to-purple-600 h-3 rounded-full transition-all duration-300"
                 style={{ width: `${progress.coverage}%` }}
               />
             </div>
-            <p className="text-xs text-purple-600 mt-2">
+            <p className="text-xs text-gray-400 mt-2">
               {progress.activitiesTested} of {progress.totalActivities} activities explored
             </p>
           </div>
@@ -176,13 +176,13 @@ export default function ProfileView({
           <div className="flex flex-wrap gap-3 justify-center">
             <button 
               onClick={onContinueQuiz}
-              className="playful-button-primary text-lg px-6 py-3"
+              className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-medium text-lg px-6 py-3 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl"
             >
               🎯 refine my preferences
             </button>
             <button 
               onClick={onViewFullResults}
-              className="playful-button-secondary text-base px-4 py-2"
+              className="bg-gray-700 hover:bg-gray-600 text-gray-300 hover:text-white text-base px-4 py-2 rounded-lg transition-all duration-200 border border-gray-600 hover:border-gray-500"
             >
               📊 detailed results
             </button>
@@ -190,22 +190,22 @@ export default function ProfileView({
         </section>
 
         {/* Current Top Preferences */}
-        <section className="playful-card p-6 bg-gradient-to-br from-emerald-50 to-green-50">
+        <section className="bg-gray-800/70 backdrop-blur-sm border border-gray-700 rounded-xl p-6">
           <div className="flex items-center gap-3 mb-4">
             <span className="text-3xl">⭐</span>
-            <h2 className="text-2xl font-bold text-emerald-700">Your current favorites</h2>
+            <h2 className="text-2xl font-bold text-white">Your current favorites</h2>
           </div>
           <div className="grid md:grid-cols-2 gap-4">
             {topActivities.map((activity, index) => (
-              <div key={activity.id} className="bg-white/70 rounded-lg p-4 border-l-4 border-emerald-400">
+              <div key={activity.id} className="bg-gray-700/70 rounded-lg p-4 border-l-4 border-emerald-400">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <h3 className="font-bold text-emerald-800 text-sm">{activity.title}</h3>
-                    <p className="text-emerald-600 text-xs">{activity.subtitle}</p>
+                    <h3 className="font-bold text-white text-sm">{activity.title}</h3>
+                    <p className="text-gray-300 text-xs">{activity.subtitle}</p>
                   </div>
                   <div className="text-right">
-                    <div className="text-xs text-emerald-600">#{index + 1}</div>
-                    <div className="text-xs font-mono text-emerald-500">{activity.elo}</div>
+                    <div className="text-xs text-gray-400">#{index + 1}</div>
+                    <div className="text-xs font-mono text-emerald-400">{activity.elo}</div>
                   </div>
                 </div>
               </div>
@@ -215,16 +215,16 @@ export default function ProfileView({
 
         {/* Top Activity Types */}
         {topTags.length > 0 && (
-          <section className="playful-card p-6 bg-gradient-to-br from-amber-50 to-orange-50">
+          <section className="bg-gray-800/70 backdrop-blur-sm border border-gray-700 rounded-xl p-6">
             <div className="flex items-center gap-3 mb-4">
               <span className="text-3xl">🏷️</span>
-              <h2 className="text-2xl font-bold text-amber-700">Types you gravitate toward</h2>
+              <h2 className="text-2xl font-bold text-white">Types you gravitate toward</h2>
             </div>
             <div className="flex flex-wrap gap-2">
               {topTags.map((tagScore, index) => (
-                <div key={tagScore.tag} className="bg-white/70 rounded-full px-4 py-2 border border-amber-200">
-                  <span className="text-amber-800 font-medium">#{index + 1} {tagScore.tag}</span>
-                  <span className="text-xs text-amber-600 ml-2">
+                <div key={tagScore.tag} className="bg-gray-700/70 rounded-full px-4 py-2 border border-gray-600">
+                  <span className="text-white font-medium">#{index + 1} {tagScore.tag}</span>
+                  <span className="text-xs text-gray-400 ml-2">
                     ({tagScore.activityCount} activities)
                   </span>
                 </div>
@@ -234,42 +234,42 @@ export default function ProfileView({
         )}
 
         {/* Profile Actions */}
-        <section className="playful-card p-6 bg-gradient-to-br from-gray-50 to-slate-50">
-          <h2 className="text-xl font-bold text-gray-700 mb-4">🛠️ Profile Options</h2>
+        <section className="bg-gray-800/70 backdrop-blur-sm border border-gray-700 rounded-xl p-6">
+          <h2 className="text-xl font-bold text-white mb-4">🛠️ Profile Options</h2>
           <div className="flex flex-wrap gap-3">
             <button 
               onClick={onContinueQuiz}
-              className="playful-button-primary"
+              className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-medium px-4 py-2 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl"
             >
               ➕ do more matchups
             </button>
             <button 
               onClick={onViewFullResults}
-              className="playful-button-secondary"
+              className="bg-gray-700 hover:bg-gray-600 text-gray-300 hover:text-white px-4 py-2 rounded-lg transition-all duration-200 border border-gray-600 hover:border-gray-500"
             >
               📋 full analysis
             </button>
             <button 
               onClick={onCustomEvent}
-              className="playful-button-secondary"
+              className="bg-gray-700 hover:bg-gray-600 text-gray-300 hover:text-white px-4 py-2 rounded-lg transition-all duration-200 border border-gray-600 hover:border-gray-500"
             >
               🔮 test custom event
             </button>
             <button 
               onClick={onProfiles}
-              className="playful-button-secondary"
+              className="bg-gray-700 hover:bg-gray-600 text-gray-300 hover:text-white px-4 py-2 rounded-lg transition-all duration-200 border border-gray-600 hover:border-gray-500"
             >
               📊 view all profiles
             </button>
             <button 
               onClick={onClearData}
-              className="playful-button-secondary text-red-700 border-red-300 hover:bg-red-50"
+              className="bg-gray-700 hover:bg-red-600 text-red-400 hover:text-white px-4 py-2 rounded-lg transition-all duration-200 border border-red-500 hover:border-red-400"
             >
               🗑️ reset preferences
             </button>
             <button 
               onClick={onBackToSplash}
-              className="playful-button-secondary"
+              className="bg-gray-700 hover:bg-gray-600 text-gray-300 hover:text-white px-4 py-2 rounded-lg transition-all duration-200 border border-gray-600 hover:border-gray-500"
             >
               🏠 back to home
             </button>
@@ -277,7 +277,7 @@ export default function ProfileView({
         </section>
       </main>
 
-      <p className="text-xs text-brown-500 mt-6 text-center">
+      <p className="text-xs text-gray-500 mt-6 text-center">
         &copy; 2025
       </p>
     </div>
