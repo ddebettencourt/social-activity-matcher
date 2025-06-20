@@ -43,13 +43,6 @@ export default function QuizApp() {
     // Test Supabase connection on app start
     testConnection();
   }, []);
-  
-  useEffect(() => {
-    // Only initialize fresh quiz state for anonymous users starting a new quiz
-    if (currentView === 'start' && !currentUser && quizState.activityData.length === 0) {
-      initializeQuizState();
-    }
-  }, [currentView, currentUser, quizState.activityData.length, initializeQuizState]);
 
   // User Management Functions
   const loginUser = async (username: string) => {
@@ -200,6 +193,12 @@ export default function QuizApp() {
     console.log(`initializeQuizState: ${loadedActivities.length} activities initialized.`);
   }, [currentUser]);
 
+  useEffect(() => {
+    // Only initialize fresh quiz state for anonymous users starting a new quiz
+    if (currentView === 'start' && !currentUser && quizState.activityData.length === 0) {
+      initializeQuizState();
+    }
+  }, [currentView, currentUser, quizState.activityData.length, initializeQuizState]);
 
   const startNewQuiz = async () => {
     console.log("startNewQuiz: Starting new quiz...");
