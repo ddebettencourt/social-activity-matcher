@@ -26,10 +26,6 @@ export default function ResultsView({ onRetakeQuiz, onClearData, currentUser, on
   const [worstTags, setWorstTags] = useState<TagScore[]>([]);
   const [totalMatchups, setTotalMatchups] = useState<number>(0);
 
-  useEffect(() => {
-    loadAndProcessResults();
-  }, [loadAndProcessResults]);
-
   const loadAndProcessResults = useCallback(() => {
     console.log("loadAndProcessResults: Loading results...");
     
@@ -67,6 +63,10 @@ export default function ResultsView({ onRetakeQuiz, onClearData, currentUser, on
       console.warn("No activity data found to display results");
     }
   }, [activityData, totalMatchupsProp]);
+
+  useEffect(() => {
+    loadAndProcessResults();
+  }, [loadAndProcessResults]);
 
   const generatePersonaName = (drivers: PreferenceDriver[]) => {
     console.log("generatePersonaName: Generating persona...");
