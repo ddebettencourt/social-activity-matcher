@@ -19,8 +19,13 @@ interface GenerateInsightRequest {
 }
 
 export async function POST(request: NextRequest) {
+  let choices: Choice[] = [];
+  let pastInsights: string[] = [];
+  
   try {
-    const { choices, pastInsights }: GenerateInsightRequest = await request.json();
+    const requestData: GenerateInsightRequest = await request.json();
+    choices = requestData.choices;
+    pastInsights = requestData.pastInsights;
 
     if (!choices || choices.length < 6) {
       return NextResponse.json(
