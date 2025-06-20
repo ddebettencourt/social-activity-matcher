@@ -97,14 +97,6 @@ export default function CustomEventView({ onBackToProfile, currentUser }: Custom
     setIsAnalyzing(false); // Ensure analyzing state is reset
   };
 
-  const getScoreColor = (score: number) => {
-    if (score >= 8.5) return 'text-green-600 bg-green-100';
-    if (score >= 7.0) return 'text-emerald-600 bg-emerald-100';
-    if (score >= 5.5) return 'text-yellow-600 bg-yellow-100';
-    if (score >= 4.0) return 'text-orange-600 bg-orange-100';
-    return 'text-red-600 bg-red-100';
-  };
-
   const getScoreEmoji = (score: number) => {
     if (score >= 8.5) return '🤩';
     if (score >= 7.0) return '😊';
